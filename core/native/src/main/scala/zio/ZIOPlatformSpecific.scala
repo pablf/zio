@@ -34,4 +34,31 @@ private[zio] trait ZIOCompanionPlatformSpecific {
    */
   def attemptBlockingInterrupt[A](effect: => A)(implicit trace: Trace): Task[A] =
     ZIO.attemptBlocking(effect)
+
+  def readFile(path: => Path)(implicit trace: Trace, d: DummyImplicit): ZIO[Any, IOException, String] =
+    readFile(path.toString)
+
+  def readFile(name: => String)(implicit trace: Trace): ZIO[Any, IOException, String] =
+    ZIO.acquireReleaseWith(ZIO.attemptBlockingIO(scala.io.Source.fromFile(name)))(s =>
+      ZIO.attemptBlocking(s.close()).orDie
+    ) { s =>
+      ZIO.attemptBlockingIO(s.mkString)
+    }
+
+  def readFileInputStream(
+    path: => Path
+  )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZInputStream] =
+    readFileInputStream(path.toString)
+
+  def readFileInputStream(
+    name: => String
+  )(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
+    ZIO
+      .acquireRelease(
+        ZIO.attemptBlockingIO {
+          val fis = new io.FileInputStream(name)
+          (fis, ZInputStream.fromInputStream(fis))
+        }
+      )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
+      .map(_._2)
 }
