@@ -18,6 +18,9 @@ package zio
 
 import zio.stacktracer.TracingImplicits.disableAutoTrace
 
+import java.io.IOException
+import java.nio.file.Path
+
 private[zio] trait ZIOPlatformSpecific[-R, +E, +A]
 
 private[zio] trait ZIOCompanionPlatformSpecific {
