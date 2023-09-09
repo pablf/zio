@@ -18,7 +18,7 @@ package zio
 
 import zio.stacktracer.TracingImplicits.disableAutoTrace
 
-import java.io.{FileInputStream, IOException}
+import java.io.{FileInputStream, FileOutputStream, IOException}
 import java.net.{URI, URL}
 import java.nio.file.Path
 
@@ -109,7 +109,7 @@ private[zio] trait ZIOCompanionPlatformSpecific {
     ZIO
       .acquireRelease(
         ZIO.attemptBlockingIO {
-          val fos = new io.FileOutputStream(path)
+          val fos = new FileOutputStream(path)
           (fos, ZOutputStream.fromOutputStream(fos))
         }
       )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
