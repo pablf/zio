@@ -19,6 +19,7 @@ package zio
 import zio.stacktracer.TracingImplicits.disableAutoTrace
 
 import java.io.{FileInputStream, IOException}
+import java.net.{URI, URL}
 import java.nio.file.Path
 
 private[zio] trait ZIOPlatformSpecific[-R, +E, +A]
@@ -64,4 +65,58 @@ private[zio] trait ZIOCompanionPlatformSpecific {
         }
       )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
       .map(_._2)
+
+  def readURLInputStream(
+    url: => URL
+  )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZInputStream] =
+    ZIO
+      .acquireRelease(
+        ZIO.attemptBlockingIO {
+          val fis = url.openStream()
+          (fis, ZInputStream.fromInputStream(fis))
+        }
+      )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
+      .map(_._2)
+
+  def readURLInputStream(
+    url: => String
+  )(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
+    ZIO.succeed(new URL(url)).flatMap(readURLInputStream(_))
+
+  def readURIInputStream(uri: => URI)(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
+    for {
+      uri        <- ZIO.succeed(uri)
+      isAbsolute <- ZIO.attemptBlockingIO(uri.isAbsolute)
+      is         <- if (isAbsolute) readURLInputStream(uri.toURL) else readFileInputStream(uri.toString)
+    } yield is
+
+  def writeFile(path: => String, content: => String)(implicit trace: Trace): ZIO[Any, IOException, Unit] =
+    ZIO.acquireReleaseWith(ZIO.attemptBlockingIO(new java.io.FileWriter(path)))(f =>
+      ZIO.attemptBlocking(f.close()).orDie
+    ) { f =>
+      ZIO.attemptBlockingIO(f.write(content))
+    }
+
+  def writeFile(path: => Path, content: => String)(implicit
+    trace: Trace,
+    d: DummyImplicit
+  ): ZIO[Any, IOException, Unit] =
+    writeFile(path.toString, content)
+
+  def writeFileOutputStream(
+    path: => String
+  )(implicit trace: Trace): ZIO[Scope, IOException, ZOutputStream] =
+    ZIO
+      .acquireRelease(
+        ZIO.attemptBlockingIO {
+          val fos = new io.FileOutputStream(path)
+          (fos, ZOutputStream.fromOutputStream(fos))
+        }
+      )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
+      .map(_._2)
+
+  def writeFileOutputStream(
+    path: => Path
+  )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZOutputStream] =
+    writeFileOutputStream(path.toString)
 }
