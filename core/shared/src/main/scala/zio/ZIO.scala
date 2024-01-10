@@ -20,7 +20,9 @@ import zio.internal.{FiberScope, Platform}
 import zio.metrics.{MetricLabel, Metrics}
 import zio.stacktracer.TracingImplicits.disableAutoTrace
 
-import java.io.IOException
+import java.io.{FileInputStream, FileOutputStream, IOException}
+import java.net.{URI, URL}
+import java.nio.file.Path
 import java.util.function.IntFunction
 import scala.annotation.implicitNotFound
 import scala.collection.mutable.Builder
@@ -4365,6 +4367,57 @@ object ZIO extends ZIOCompanionPlatformSpecific with ZIOCompanionVersionSpecific
   def randomWith[R, E, A](f: Random => ZIO[R, E, A])(implicit trace: Trace): ZIO[R, E, A] =
     DefaultServices.currentServices.getWith(services => f(services.get(Random.tag)))
 
+  def readFile(path: => Path)(implicit trace: Trace, d: DummyImplicit): ZIO[Any, IOException, String] =
+    readFile(path.toString)
+
+  def readFile(name: => String)(implicit trace: Trace): ZIO[Any, IOException, String] =
+    ZIO.acquireReleaseWith(ZIO.attemptBlockingIO(scala.io.Source.fromFile(name)))(s =>
+      ZIO.attemptBlocking(s.close()).orDie
+    ) { s =>
+      ZIO.attemptBlockingIO(s.mkString)
+    }
+
+  def readFileInputStream(
+    path: => Path
+  )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZInputStream] =
+    readFileInputStream(path.toString)
+
+  def readFileInputStream(
+    name: => String
+  )(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
+    ZIO
+      .acquireRelease(
+        ZIO.attemptBlockingIO {
+          val fis = new FileInputStream(name)
+          (fis, ZInputStream.fromInputStream(fis))
+        }
+      )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
+      .map(_._2)
+
+  def readURLInputStream(
+    url: => URL
+  )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZInputStream] =
+    ZIO
+      .acquireRelease(
+        ZIO.attemptBlockingIO {
+          val fis = url.openStream()
+          (fis, ZInputStream.fromInputStream(fis))
+        }
+      )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
+      .map(_._2)
+
+  def readURLInputStream(
+    url: => String
+  )(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
+    ZIO.succeed(new URL(url)).flatMap(readURLInputStream(_))
+
+  def readURIInputStream(uri: => URI)(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
+    for {
+      uri        <- ZIO.succeed(uri)
+      isAbsolute <- ZIO.attemptBlockingIO(uri.isAbsolute)
+      is         <- if (isAbsolute) readURLInputStream(uri.toURL) else readFileInputStream(uri.toString)
+    } yield is
+
   /**
    * Reduces an `Iterable[IO]` to a single `IO`, working sequentially.
    */
@@ -5120,6 +5173,36 @@ object ZIO extends ZIOCompanionPlatformSpecific with ZIOCompanionVersionSpecific
    */
   def withSystemScoped[A <: System](system: => A)(implicit tag: Tag[A], trace: Trace): ZIO[Scope, Nothing, Unit] =
     DefaultServices.currentServices.locallyScopedWith(_.add(system))
+
+  def writeFile(path: => String, content: => String)(implicit trace: Trace): ZIO[Any, IOException, Unit] =
+    ZIO.acquireReleaseWith(ZIO.attemptBlockingIO(new java.io.FileWriter(path)))(f =>
+      ZIO.attemptBlocking(f.close()).orDie
+    ) { f =>
+      ZIO.attemptBlockingIO(f.write(content))
+    }
+
+  def writeFile(path: => Path, content: => String)(implicit
+    trace: Trace,
+    d: DummyImplicit
+  ): ZIO[Any, IOException, Unit] =
+    writeFile(path.toString, content)
+
+  def writeFileOutputStream(
+    path: => String
+  )(implicit trace: Trace): ZIO[Scope, IOException, ZOutputStream] =
+    ZIO
+      .acquireRelease(
+        ZIO.attemptBlockingIO {
+          val fos = new FileOutputStream(path)
+          (fos, ZOutputStream.fromOutputStream(fos))
+        }
+      )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
+      .map(_._2)
+
+  def writeFileOutputStream(
+    path: => Path
+  )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZOutputStream] =
+    writeFileOutputStream(path.toString)
 
   /**
    * Returns an effect that yields to the runtime system, starting on a fresh
