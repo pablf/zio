@@ -4367,9 +4367,15 @@ object ZIO extends ZIOCompanionPlatformSpecific with ZIOCompanionVersionSpecific
   def randomWith[R, E, A](f: Random => ZIO[R, E, A])(implicit trace: Trace): ZIO[R, E, A] =
     DefaultServices.currentServices.getWith(services => f(services.get(Random.tag)))
 
+  /**
+   * Reads a file from a `Path`. 
+   */
   def readFile(path: => Path)(implicit trace: Trace, d: DummyImplicit): ZIO[Any, IOException, String] =
     readFile(path.toString)
 
+  /**
+   * Reads a file from a path given as a `String`. 
+   */
   def readFile(name: => String)(implicit trace: Trace): ZIO[Any, IOException, String] =
     ZIO.acquireReleaseWith(ZIO.attemptBlockingIO(scala.io.Source.fromFile(name)))(s =>
       ZIO.attemptBlocking(s.close()).orDie
@@ -4377,11 +4383,17 @@ object ZIO extends ZIOCompanionPlatformSpecific with ZIOCompanionVersionSpecific
       ZIO.attemptBlockingIO(s.mkString)
     }
 
+  /**
+   * Reads a file from a `Path` and transform its content into a `ZInputStream`. 
+   */
   def readFileInputStream(
     path: => Path
   )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZInputStream] =
     readFileInputStream(path.toString)
 
+  /**
+   * Reads a file from a path given as a `String` and transform its content into a `ZInputStream`. 
+   */
   def readFileInputStream(
     name: => String
   )(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
@@ -4394,6 +4406,9 @@ object ZIO extends ZIOCompanionPlatformSpecific with ZIOCompanionVersionSpecific
       )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
       .map(_._2)
 
+  /**
+   * Reads from an `URL` and transform its content into a `ZInputStream`. 
+   */
   def readURLInputStream(
     url: => URL
   )(implicit trace: Trace, d: DummyImplicit): ZIO[Scope, IOException, ZInputStream] =
@@ -4406,11 +4421,17 @@ object ZIO extends ZIOCompanionPlatformSpecific with ZIOCompanionVersionSpecific
       )(tuple => ZIO.attemptBlocking(tuple._1.close()).orDie)
       .map(_._2)
 
+  /**
+   * Reads from an URL given as a `String` and transform its content into a `ZInputStream`. 
+   */
   def readURLInputStream(
     url: => String
   )(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
     ZIO.succeed(new URL(url)).flatMap(readURLInputStream(_))
 
+  /**
+   * Reads from an `URI` and transform its content into a `ZInputStream`. 
+   */
   def readURIInputStream(uri: => URI)(implicit trace: Trace): ZIO[Scope, IOException, ZInputStream] =
     for {
       uri        <- ZIO.succeed(uri)
