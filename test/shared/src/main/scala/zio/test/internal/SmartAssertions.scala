@@ -140,9 +140,9 @@ object SmartAssertions {
         )
       }
 
-  def containsSeq[A, B >: A](value: A): TestArrow[Seq[B], Boolean] =
+  def containsSeq[A, B <: A](value: B): TestArrow[Seq[A], Boolean] =
     TestArrow
-      .make[Seq[B], Boolean] { seq =>
+      .make[Seq[A], Boolean] { seq =>
         TestTrace.boolean(seq.contains(value)) {
           className(seq) + M.did + "contain" + M.pretty(value)
         }
