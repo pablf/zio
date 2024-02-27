@@ -10,16 +10,20 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
   def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     if (!outputs.isEmpty) 
       for {
+        _ <- Right(restartKeys)
         _ <-  neededKeys(outputs)
-        _ <- Right(throw new Throwable(neededKeys.toString))
+        //_ <- Right(throw new Throwable(neededKeys.toString))
         rightTree <- build(outputs)
         leftTree <- buildComplete(dependencies)
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
-  def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = {
+  def restartKeys(): Unit = {
     neededKeys = Map.empty
     dependencies = Nil
+  }
+
+  def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = 
     forEach(outputs) { output =>
       getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
         .flatMap(node =>{
@@ -27,7 +31,6 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
           neededKeys(node.inputs)
         })
     }.map(_ => ())
-  }
     
 
   private def add(key: Key): Unit =
