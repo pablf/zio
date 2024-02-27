@@ -16,7 +16,9 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
-  def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = 
+  def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = {
+    neededKeys = Map.empty
+    dependencies = Nil
     forEach(outputs) { output =>
       getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
         .flatMap(node =>{
@@ -24,6 +26,8 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
           neededKeys(node.inputs)
         })
     }.map(_ => ())
+  }
+    
 
   private def add(key: Key): Unit =
     neededKeys.get(key) match {
