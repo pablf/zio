@@ -4,10 +4,38 @@ import zio.internal.macros.LayerTree._
 
 final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) => Boolean) {
 
+  var neededKeys: Map[Key, Int] = Map.empty
+  var dependencies: List[Key] = Nil
+
   def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
+    for {
+      _ <-  neededKeys(outputs)
+      rightTree <- build(outputs)
+      leftTree <- buildComplete(dependencies)
+    } yield leftTree >>> rightTree
+
+  def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = 
     forEach(outputs) { output =>
       getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
-        .flatMap(node => buildNode(node, Set(node)))
+        .flatMap(node =>{
+          add(output)
+          neededKeys(node.inputs)
+        })
+    }.map(_ => ())
+
+  private def add(key: Key): Unit =
+    neededKeys.get(key) match {
+      case Some(n) => neededKeys = neededKeys + (key -> (n + 1))
+      case None => neededKeys = neededKeys + (key -> 1)
+    }
+    
+
+  private def build(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
+    forEach(outputs) { output =>
+      if (neededKeys.get(output) == Some(1))
+        getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
+          .flatMap(node => buildNode(node, Set(node)))
+      else Right(LayerTree.empty)
     }
       .map(_.distinct.combineHorizontally)
 
@@ -16,8 +44,16 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
 
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(node.inputs) { output =>
-      getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.missingTransitiveDependency(node, output))
-        .flatMap(node => buildNode(node, Set(node)))
+      neededKeys.get(output) match {
+        case None => Right(LayerTree.empty)
+        case Some(1) =>
+          getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
+            .flatMap(node => buildNode(node, Set(node)))
+        case Some(n) => {
+          dependencies = output :: dependencies
+          Right(LayerTree.empty)
+        }
+      }
     }
       .map(_.distinct.combineHorizontally)
       .map(_ >>> LayerTree.succeed(node.value))
@@ -27,7 +63,7 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
 
   private def getNodeWithOutput[E](output: Key, error: E): Either[::[E], Node[Key, A]] =
     nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
-
+    
   private def buildNode(
     node: Node[Key, A],
     seen: Set[Node[Key, A]]
