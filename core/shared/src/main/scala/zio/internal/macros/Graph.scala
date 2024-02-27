@@ -8,11 +8,13 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
   var dependencies: List[Key] = Nil
 
   def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
-    for {
-      _ <-  neededKeys(outputs)
-      rightTree <- build(outputs)
-      leftTree <- buildComplete(dependencies)
-    } yield leftTree >>> rightTree
+    if (outputs.isEmpty) 
+      for {
+        _ <-  neededKeys(outputs)
+        rightTree <- build(outputs)
+        leftTree <- buildComplete(dependencies)
+      } yield leftTree >>> rightTree
+    else Right(LayerTree.empty)
 
   def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = 
     forEach(outputs) { output =>
