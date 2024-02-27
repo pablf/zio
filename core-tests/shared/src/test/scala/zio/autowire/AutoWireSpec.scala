@@ -148,7 +148,7 @@ object AutoWireSpec extends ZIOBaseSpec {
               ZLayer.fromZIO(ZIO.unit.as(new Service2 {}))
             }
 
-            assertZIO(ZLayer.make[Service1 & Service2](Service1.live.fresh, Service2.live).build *> ZIO.succeed(timesBuilt))(1)
+            assertZIO(ZLayer.make[Service1 & Service2](Service1.live.fresh, Service2.live).build *> ZIO.succeed(timesBuilt))(equalTo(1))
           }
           test("correctly decomposes nested, aliased intersection types") {
             type StringAlias           = String
