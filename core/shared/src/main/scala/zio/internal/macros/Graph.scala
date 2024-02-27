@@ -11,6 +11,7 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
     if (!outputs.isEmpty) 
       for {
         _ <-  neededKeys(outputs)
+        _ <- Right(throw new Throwable(neededKeys.toString))
         rightTree <- build(outputs)
         leftTree <- buildComplete(dependencies)
       } yield leftTree >>> rightTree
@@ -22,7 +23,6 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
     forEach(outputs) { output =>
       getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
         .flatMap(node =>{
-          throw new Throwable()
           add(output)
           neededKeys(node.inputs)
         })
