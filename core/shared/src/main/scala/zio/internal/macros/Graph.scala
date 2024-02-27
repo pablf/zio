@@ -15,8 +15,8 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
         _ <- Right(restartKeys())
         _ <-  neededKeys(outputs)
         rightTree <- build(outputs)
-        _ <- Right(throw new Throwable(List(d1.toString, n1.toString, dependencies.toString, neededKeys.toString).mkString("n")))
-        leftTree <- buildComplete(dependencies)
+        //_ <- Right(throw new Throwable(List(d1.toString, n1.toString, dependencies.toString, neededKeys.toString).mkString("n")))
+        leftTree <- if(dependencies.isEmpty) Right(LayerTree.empty) else buildComplete(dependencies)
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
   }
