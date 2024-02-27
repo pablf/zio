@@ -12,7 +12,7 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
       for {
         _ <- Right(restartKeys())
         _ <-  neededKeys(outputs)
-        //_ <- Right(throw new Throwable(neededKeys.toString))
+        _ <- Right(throw new Throwable(neededKeys.toString))
         rightTree <- build(outputs)
         leftTree <- buildComplete(dependencies)
       } yield leftTree >>> rightTree
