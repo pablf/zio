@@ -7,16 +7,20 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
   var neededKeys: Map[Key, Int] = Map.empty
   var dependencies: List[Key] = Nil
 
-  def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
+  def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] = {
+    val d1 = dependencies
+    val n1 = neededKeys
     if (!outputs.isEmpty) 
       for {
         _ <- Right(restartKeys())
         _ <-  neededKeys(outputs)
-        _ <- Right(throw new Throwable(neededKeys.toString))
         rightTree <- build(outputs)
+        _ <- Right(throw new Throwable(List(d1.toString, n1.toString, dependencies.toString, neededKeys.toString).mkString("n")))
         leftTree <- buildComplete(dependencies)
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
+  }
+    
 
   def restartKeys(): Unit = {
     neededKeys = Map.empty
