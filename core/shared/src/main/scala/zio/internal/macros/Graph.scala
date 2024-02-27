@@ -2,7 +2,7 @@ package zio.internal.macros
 
 import zio.internal.macros.LayerTree._
 
-final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) => Boolean) {
+final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) => Boolean, environment: Key => Node[Key, A]) {
 
   var neededKeys: Map[Key, Int] = Map.empty
   var dependencies: List[Key] = Nil
@@ -34,10 +34,17 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
 
   private def build(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(outputs) { output =>
-      if (neededKeys.get(output) == Some(1))
-        getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
-          .flatMap(node => buildNode(node, Set(node)))
-      else Right(LayerTree.empty)
+
+      neededKeys.get(output) match {
+        case None => Right(LayerTree.empty)
+        case Some(1) =>
+          getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
+            .flatMap(node => buildNode(node, Set(node)))
+        case Some(n) => {
+          dependencies = output :: dependencies
+          Right(LayerTree.succeed(environment(output).value))
+        }
+      }
     }
       .map(_.distinct.combineHorizontally)
 
@@ -61,7 +68,7 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
       .map(_ >>> LayerTree.succeed(node.value))
 
   def map[B](f: A => B): Graph[Key, B] =
-    Graph(nodes.map(_.map(f)), keyEquals)
+    Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f))
 
   private def getNodeWithOutput[E](output: Key, error: E): Either[::[E], Node[Key, A]] =
     nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
@@ -74,7 +81,14 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
       for {
         out    <- getNodeWithOutput(input, error = GraphError.missingTransitiveDependency(node, input))
         _      <- assertNonCircularDependency(node, seen, out)
-        result <- buildNode(out, seen + out)
+        result <- neededKeys.get(input) match {
+          case None => Left(::(GraphError.missingTransitiveDependency(node, input), Nil))
+          case Some(1) => buildNode(out, seen + out)
+          case Some(n) => {
+            dependencies = input :: dependencies
+            Right(LayerTree.empty)
+          }
+        }
       } yield result
     }.map {
       _.distinct.combineHorizontally >>> LayerTree.succeed(node.value)
