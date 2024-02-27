@@ -22,6 +22,7 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
     forEach(outputs) { output =>
       getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
         .flatMap(node =>{
+          throw new Throwable()
           add(output)
           neededKeys(node.inputs)
         })
