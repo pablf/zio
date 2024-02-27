@@ -27,13 +27,20 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
     dependencies = Nil
   }
 
-  def neededKeys(outputs: List[Key]): Either[::[GraphError[Key, A]], Unit] = 
+  def neededKeys(outputs: List[Key], seen: Set[Node[Key, A]] = Set.empty, parent: Option[Node[Key, A]] = None): Either[::[GraphError[Key, A]], Unit] = 
     forEach(outputs) { output =>
-      getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
-        .flatMap(node =>{
-          add(output)
-          neededKeys(node.inputs)
-        })
+      for {
+        node <- parent match {
+          case Some(p) => getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.missingTransitiveDependency(p, output))
+          case None => getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
+        }
+        _ <- Right(add(output))
+        _ <- parent match {
+          case Some(p) => assertNonCircularDependency(p, seen, node)
+          case None => Right(())
+        }
+        _ <- neededKeys(node.inputs, seen + node, Some(node))
+      } yield ()
     }.map(_ => ())
     
 
