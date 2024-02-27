@@ -8,7 +8,7 @@ final case class Graph[Key, A](nodes: List[Node[Key, A]], keyEquals: (Key, Key) 
   var dependencies: List[Key] = Nil
 
   def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
-    if (outputs.isEmpty) 
+    if (!outputs.isEmpty) 
       for {
         _ <-  neededKeys(outputs)
         rightTree <- build(outputs)
