@@ -149,7 +149,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             }
 
             assertZIO(ZLayer.make[Service1 & Service2](Service1.live.fresh, Service2.live).build *> ZIO.succeed(timesBuilt))(equalTo(1))
-          }
+          },
           test("correctly decomposes nested, aliased intersection types") {
             type StringAlias           = String
             type HasBooleanDoubleAlias = Boolean with Double
