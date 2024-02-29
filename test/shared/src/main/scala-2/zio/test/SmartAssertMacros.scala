@@ -443,13 +443,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
       }
 
     val containsSeqNone: ASTConverter =
-      ASTConverter.make {
-        case AST.Method(_, lhsTpe, _, "contains", _, None, _) if lhsTpe <:< weakTypeOf[Seq[_]] =>
-          if (args.head.tpe.dealias <:< lhsTpe.typeArgs.head.dealias)
-            AssertAST("containsSeq", args = q"_" :: Nil, tpes = List(args.head.tpe.dealias, lhsTpe.typeArgs.head.dealias))
-          else
-            AssertAST("containsSeq", args = q"_" :: Nil)//, tpes = List(lhsTpe.typeArgs.head.dealias, lhsTpe.typeArgs.head.dealias))
-      }
+      throw new Throwable("oh")
 
     val containsOption: ASTConverter =
       ASTConverter.make {
