@@ -512,7 +512,7 @@ object SmartAssertionSpec extends ZIOBaseSpec {
             assertTrue(numbers.forall(allNumbers.contains))
             """
         }
-        assertZIO(result)(isRight(test.Assertions.anything))
+        assertZIO(result)(isRight(anything))
       } @@ TestAspect.exceptScala212,
       test("contains") {
         assertTrue(Seq(Seq[Any](1)).contains(Seq[Int](1)))
