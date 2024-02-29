@@ -495,13 +495,15 @@ object SmartAssertionSpec extends ZIOBaseSpec {
       test("compiles contains") {
         val numbers = List(1,2)
         val allNumbers = List(1,2,3)
-        assertTrue(numbers.forall(allNumbers.contains))
-      },
+        lazy val res = assertTrue(numbers.forall(allNumbers.contains))
+        res
+      } @@ TestAspect.exceptScala212,
       test("compiles contains with Seq") {
         val seq = Seq(Seq[Any](1))
         val subSeq = Seq(Seq[Int](1))
-        assertTrue(subSeq.forall(seq.contains))
-      },
+        lazy val res = assertTrue(subSeq.forall(seq.contains))
+        res
+      } @@ TestAspect.exceptScala212,
       test("contains") {
         assertTrue(Seq(Seq[Any](1)).contains(Seq[Int](1)))
       },
