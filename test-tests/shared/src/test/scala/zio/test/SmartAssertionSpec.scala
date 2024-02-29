@@ -499,7 +499,7 @@ object SmartAssertionSpec extends ZIOBaseSpec {
       },
       test("compiles contains with Seq") {
         val seq = Seq(Seq[Any](1))
-        val subSeq = Seq[Int](1)
+        val subSeq = Seq(Seq[Int](1))
         assertTrue(subSeq.forall(seq.contains))
       },
       test("contains") {
