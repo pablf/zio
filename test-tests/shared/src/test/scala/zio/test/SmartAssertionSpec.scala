@@ -493,16 +493,24 @@ object SmartAssertionSpec extends ZIOBaseSpec {
     ),
     suite("subtype seq")(
       test("compiles contains") {
-        val numbers = List(1,2)
-        val allNumbers = List(1,2,3)
-        lazy val res = assertTrue(numbers.forall(allNumbers.contains))
-        res
+        val result = typeCheck {
+        """
+            val numbers = List(1,2)
+            val allNumbers = List(1,2,3)
+            assertTrue(numbers.forall(allNumbers.contains))
+            """
+        }
+        assertZIO(result)(isRight(test.Assertions.anything))
       } @@ TestAspect.exceptScala212,
       test("compiles contains with Seq") {
-        val seq = Seq(Seq[Any](1))
-        val subSeq = Seq(Seq[Int](1))
-        lazy val res = assertTrue(subSeq.forall(seq.contains))
-        res
+        val result = typeCheck {
+        """
+            val numbers = Seq(Seq[Any](1))
+            val allNumbers = Seq(Seq[Int](1))
+            assertTrue(numbers.forall(allNumbers.contains))
+            """
+        }
+        assertZIO(result)(isRight(test.Assertions.anything))
       } @@ TestAspect.exceptScala212,
       test("contains") {
         assertTrue(Seq(Seq[Any](1)).contains(Seq[Int](1)))

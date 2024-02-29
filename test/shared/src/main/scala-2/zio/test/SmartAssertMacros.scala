@@ -439,10 +439,8 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
           if (args.head.tpe.dealias <:< lhsTpe.typeArgs.head.dealias)
             AssertAST("containsSeq", args = args, tpes = List(args.head.tpe.dealias, lhsTpe.typeArgs.head.dealias))
           else
-            AssertAST("containsSeq", args = args)//, tpes = List(lhsTpe.typeArgs.head.dealias, lhsTpe.typeArgs.head.dealias))
+            AssertAST("containsSeq", args = args)
       }
-
-      
 
     val containsOption: ASTConverter =
       ASTConverter.make {
