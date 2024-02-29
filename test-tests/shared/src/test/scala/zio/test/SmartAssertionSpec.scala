@@ -493,7 +493,7 @@ object SmartAssertionSpec extends ZIOBaseSpec {
     ),
     suite("subtype seq")(
       test("compiles contains") {
-        import zio.test.SmartAssertions._
+        import zio.test.internal.SmartAssertions._
         val result = typeCheck {
         """
             val numbers = List(1,2)
@@ -504,7 +504,7 @@ object SmartAssertionSpec extends ZIOBaseSpec {
         assertZIO(result)(isRight(anything))
       } @@ TestAspect.exceptScala212,
       test("compiles contains with Seq") {
-        import zio.test.SmartAssertions._
+        import zio.test.internal.SmartAssertions._
         val result = typeCheck {
         """
             val numbers = Seq(Seq[Any](1))
