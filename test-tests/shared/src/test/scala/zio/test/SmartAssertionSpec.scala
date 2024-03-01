@@ -495,7 +495,7 @@ object SmartAssertionSpec extends ZIOBaseSpec {
       test("compiles contains") {
         import zio.test.Assertion._
         val result = typeCheck {
-        """
+          """
             val numbers = List(1,2)
             val allNumbers = List(1,2,3)
             assertTrue(numbers.forall(allNumbers.contains))
@@ -506,7 +506,7 @@ object SmartAssertionSpec extends ZIOBaseSpec {
       test("compiles contains with Seq") {
         import zio.test.Assertion._
         val result = typeCheck {
-        """
+          """
             val numbers = Seq(Seq[Any](1))
             val allNumbers = Seq(Seq[Int](1))
             assertTrue(numbers.forall(allNumbers.contains))
