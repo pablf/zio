@@ -325,8 +325,8 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
       }
 
     val equalTo: ASTConverter =
-      ASTConverter.make { case AST.Method(_, _, rhsTpe, "$eq$eq", _, Some(args), _) =>
-        AssertAST("equalTo", List(rhsTpe), args)
+      ASTConverter.make { case AST.Method(_, _, _, "$eq$eq", _, Some(args), _) =>
+        AssertAST("equalTo", args.map(_.tpe.dealias), args)
       }
 
     val get: ASTConverter =
@@ -372,23 +372,23 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
       }
 
     val greaterThan: ASTConverter =
-      ASTConverter.make { case AST.Method(_, _, rhsTpe, "$greater", _, Some(args), _) =>
-        AssertAST("greaterThan", List(rhsTpe), args)
+      ASTConverter.make { case AST.Method(_, _, _, "$greater", _, Some(args), _) =>
+        AssertAST("greaterThan", args.map(_.tpe.dealias), args)
       }
 
     val greaterThanOrEqualTo: ASTConverter =
-      ASTConverter.make { case AST.Method(_, _, rhsTpe, "$greater$eq", _, Some(args), _) =>
-        AssertAST("greaterThanOrEqualTo", List(rhsTpe), args)
+      ASTConverter.make { case AST.Method(_, _, _, "$greater$eq", _, Some(args), _) =>
+        AssertAST("greaterThanOrEqualTo", args.map(_.tpe.dealias), args)
       }
 
     val lessThan: ASTConverter =
-      ASTConverter.make { case AST.Method(_, _, rhsTpe, "$less", _, Some(args), _) =>
-        AssertAST("lessThan", List(rhsTpe), args)
+      ASTConverter.make { case AST.Method(_, _, _, "$less", _, Some(args), _) =>
+        AssertAST("lessThan", args.map(_.tpe.dealias), args)
       }
 
     val lessThanOrEqualTo: ASTConverter =
-      ASTConverter.make { case AST.Method(_, _, rhsTpe, "$less$eq", _, Some(args), _) =>
-        AssertAST("lessThanOrEqualTo", List(rhsTpe), args)
+      ASTConverter.make { case AST.Method(_, _, _, "$less$eq", _, Some(args), _) =>
+        AssertAST("lessThanOrEqualTo", args.map(_.tpe.dealias), args)
       }
 
     val head: ASTConverter =

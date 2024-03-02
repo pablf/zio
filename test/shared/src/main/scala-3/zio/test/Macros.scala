@@ -149,7 +149,7 @@ object SmartAssertMacros {
         val span = getSpan(rhs)
         (lhs.tpe.widen.asType, rhs.tpe.widen.asType) match {
           case ('[l], '[r]) => 
-            Expr.summon[Ordering[l]] match { 
+            Expr.summon[Ordering[r]] match { 
               case Some(ord) =>
                 op match {
                     case ">" =>
