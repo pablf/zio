@@ -148,18 +148,19 @@ object SmartAssertMacros {
       case Unseal(Apply(Select(lhs, op @ (">" | ">=" | "<" | "<=")), List(rhs))) =>
         val span = getSpan(rhs)
         (lhs.tpe.widen.asType, rhs.tpe.widen.asType) match {
-          case ('[l], '[r]) => 
+          case ('[l], '[rhsTpe]) =>
+            val r = if TypeRepr.of(l) <:< TypeRepr.of(rhsTpe) then rhsTpe else l
             Expr.summon[Ordering[r]] match { 
               case Some(ord) =>
                 op match {
                     case ">" =>
-                      '{${transform(lhs.asExpr)} >>> SmartAssertions.greaterThan(${rhs.asExpr})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThan(${rhs.asExprOf[r]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
                     case ">=" =>
-                      '{${transform(lhs.asExpr)} >>> SmartAssertions.greaterThanOrEqualTo(${rhs.asExpr})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThanOrEqualTo(${rhs.asExprOf[r]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
                     case "<" =>
-                      '{${transform(lhs.asExpr)} >>> SmartAssertions.lessThan(${rhs.asExpr})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThan(${rhs.asExprOf[r]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
                     case "<=" =>
-                      '{${transform(lhs.asExpr)} >>> SmartAssertions.lessThanOrEqualTo(${rhs.asExpr})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThanOrEqualTo(${rhs.asExprOf[r]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
                 }
               case _ => throw new Error("NO")
             }
@@ -167,9 +168,9 @@ object SmartAssertMacros {
 
       case Unseal(MethodCall(lhs, "==", tpes, Some(List(rhs)))) =>
         val span = getSpan(rhs)
-       rhs.tpe.widen.asType match {
-          case '[r] =>
-            Expr.summon[OptionalImplicit[Diff[r]]] match {
+       lhs.tpe.widen.asType match {
+          case '[l] =>
+            Expr.summon[OptionalImplicit[Diff[l]]] match {
               case Some(optDiff) =>
                 '{${transform(lhs.asExpr)} >>> SmartAssertions.equalTo(${rhs.asExpr})($optDiff.asInstanceOf[OptionalImplicit[Diff[Any]]]).span($span)}.asExprOf[TestArrow[Any, A]]
               case _ => throw new Error("OptionalImplicit should be always available")

@@ -245,7 +245,7 @@ object SmartAssertions {
         }
       }
 
-  def greaterThan[A](that: A)(implicit ordering: Ordering[A]): TestArrow[A, Boolean] =
+  def greaterThan[A, B >: A](that: B)(implicit ordering: Ordering[B]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { (a: A) =>
         TestTrace.boolean(ordering.gt(a, that)) {
@@ -253,7 +253,7 @@ object SmartAssertions {
         }
       }
 
-  def greaterThanOrEqualTo[A](that: A)(implicit ordering: Ordering[A]): TestArrow[A, Boolean] =
+  def greaterThanOrEqualTo[A, B >: A](that: B)(implicit ordering: Ordering[B]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { a =>
         TestTrace.boolean(ordering.gteq(a, that)) {
@@ -261,7 +261,7 @@ object SmartAssertions {
         }
       }
 
-  def lessThan[A](that: A)(implicit ordering: Ordering[A]): TestArrow[A, Boolean] =
+  def lessThan[A, B >: A](that: B)(implicit ordering: Ordering[B]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { a =>
         TestTrace.boolean(ordering.lt(a, that)) {
@@ -269,7 +269,7 @@ object SmartAssertions {
         }
       }
 
-  def lessThanOrEqualTo[A](that: A)(implicit ordering: Ordering[A]): TestArrow[A, Boolean] =
+  def lessThanOrEqualTo[A, B >: A](that: B)(implicit ordering: Ordering[B]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { a =>
         TestTrace.boolean(ordering.lteq(a, that)) {
@@ -277,7 +277,7 @@ object SmartAssertions {
         }
       }
 
-  def equalTo[A](that: A)(implicit diff: OptionalImplicit[Diff[A]]): TestArrow[A, Boolean] =
+  def equalTo[A, B](that: B)(implicit diff: OptionalImplicit[Diff[A]]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { a =>
         val result = (a, that) match {
