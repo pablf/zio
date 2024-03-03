@@ -122,7 +122,7 @@ object SmartAssertions {
   def existsIterable[A](predicate: TestArrow[A, Boolean]): TestArrow[Iterable[A], Boolean] =
     TestArrow
       .make[Iterable[A], Boolean] { seq =>
-        val result = seq.iterator.map(a => TestArrow.run(predicate, Right(a))).find(tt => tt.isSuccess || tt.isDie)
+        val result = seq.view.map(a => TestArrow.run(predicate, Right(a))).find(tt => tt.isSuccess || tt.isDie)
 
         val success  = result.filter(_.isSuccess)
         val elements = if (success.nonEmpty) "element" else "elements"
