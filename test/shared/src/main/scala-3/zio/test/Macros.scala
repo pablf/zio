@@ -155,23 +155,23 @@ object SmartAssertMacros {
                 op match {
                     case ">" =>
                       '{
-                        type r >: l
-                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThan[l, r](${rhs.asExprOf[r]})($ord).span($span)
+                        type `r` >: l
+                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThan[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)
                       }.asExprOf[TestArrow[Any, A]]
                     case ">=" =>
                       '{
                         type r >: l
-                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThanOrEqualTo[l, r](${rhs.asExprOf[r]})($ord).span($span)
+                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThanOrEqualTo[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)
                     }.asExprOf[TestArrow[Any, A]]
                     case "<" =>
                       '{
                         type r >: l
-                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThan[l, r](${rhs.asExprOf[r]})($ord).span($span)
+                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThan[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)
                     }.asExprOf[TestArrow[Any, A]]
                     case "<=" =>
                       '{
                         type r >: l
-                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThanOrEqualTo[l, r](${rhs.asExprOf[r]})($ord).span($span)
+                        ${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThanOrEqualTo[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)
                     }.asExprOf[TestArrow[Any, A]]
                 }
               case _ => throw new Error("NO")
