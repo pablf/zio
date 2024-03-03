@@ -168,9 +168,9 @@ object SmartAssertMacros {
 
       case Unseal(MethodCall(lhs, "==", tpes, Some(List(rhs)))) =>
         val span = getSpan(rhs)
-       lhs.tpe.widen.asType match {
-          case '[l] =>
-            Expr.summon[OptionalImplicit[Diff[l]]] match {
+       rhs.tpe.widen.asType match {
+          case '[r] =>
+            Expr.summon[OptionalImplicit[Diff[r]]] match {
               case Some(optDiff) =>
                 '{${transform(lhs.asExpr)} >>> SmartAssertions.equalTo(${rhs.asExpr})($optDiff.asInstanceOf[OptionalImplicit[Diff[Any]]]).span($span)}.asExprOf[TestArrow[Any, A]]
               case _ => throw new Error("OptionalImplicit should be always available")

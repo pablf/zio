@@ -277,7 +277,7 @@ object SmartAssertions {
         }
       }
 
-  def equalTo[A, B](that: B)(implicit diff: OptionalImplicit[Diff[A]]): TestArrow[A, Boolean] =
+  def equalTo[A, B](that: B)(implicit diff: OptionalImplicit[Diff[B]]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { a =>
         val result = (a, that) match {
