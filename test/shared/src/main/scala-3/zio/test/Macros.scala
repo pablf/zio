@@ -149,9 +149,8 @@ object SmartAssertMacros {
         val span = getSpan(rhs)
         '{(${lhs.asExpr}, {rhs.asExpr})} match {
           case '{
-            type l 
             type r >: l
-            ($lhs: `l`, $rhs: `r`)
+            ($lhs: l, $rhs: `r`)
           } =>
             Expr.summon[Ordering[r]] match { 
               case Some(ord) =>
