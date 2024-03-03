@@ -475,7 +475,7 @@ object Assertion extends AssertionVariants {
    */
   def isLessThan[A](reference: A)(implicit ord: Ordering[A]): Assertion[A] =
     Assertion[A](
-      SmartAssertions.lessThan(reference).withCode("isLessThan", valueArgument(reference))
+      SmartAssertions.lessThan[A, A](reference).withCode("isLessThan", valueArgument(reference))
     )
 
   /**
@@ -484,7 +484,7 @@ object Assertion extends AssertionVariants {
    */
   def isLessThanEqualTo[A](reference: A)(implicit ord: Ordering[A]): Assertion[A] =
     Assertion[A](
-      SmartAssertions.lessThanOrEqualTo(reference).withCode("isLessThanEqualTo", valueArgument(reference))
+      SmartAssertions.lessThanOrEqualTo[A, A](reference).withCode("isLessThanEqualTo", valueArgument(reference))
     )
 
   /**
@@ -493,7 +493,7 @@ object Assertion extends AssertionVariants {
    */
   def isGreaterThan[A](reference: A)(implicit ord: Ordering[A]): Assertion[A] =
     Assertion[A](
-      SmartAssertions.greaterThan(reference).withCode("isGreaterThan", valueArgument(reference))
+      SmartAssertions.greaterThan[A, A](reference).withCode("isGreaterThan", valueArgument(reference))
     )
 
   /**
@@ -502,7 +502,7 @@ object Assertion extends AssertionVariants {
    */
   def isGreaterThanEqualTo[A](reference: A)(implicit ord: Ordering[A]): Assertion[A] =
     Assertion[A](
-      SmartAssertions.greaterThanOrEqualTo(reference).withCode("isGreaterThanEqualTo", valueArgument(reference))
+      SmartAssertions.greaterThanOrEqualTo[A, A](reference).withCode("isGreaterThanEqualTo", valueArgument(reference))
     )
 
   /**

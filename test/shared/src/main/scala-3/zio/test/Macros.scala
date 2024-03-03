@@ -147,9 +147,9 @@ object SmartAssertMacros {
 
       case Unseal(Apply(Select(lhs, op @ (">" | ">=" | "<" | "<=")), List(rhs))) =>
         val span = getSpan(rhs)
-        (lhs.tpe.widen.asType, rhs.tpe.widen.asType) match {
-          case ('[l], '[rhsTpe]) =>
-            val r = if TypeRepr.of(l) <:< TypeRepr.of(rhsTpe) then rhsTpe else l
+        val rhsTpe = if lhs.tpe <:< rhs.tpe then rhs.tpe.widen else lhs.tpe.widen
+        (lhs.tpe.widen.asType, rhsTpe.asType) match {
+          case ('[l], '[r]) =>
             Expr.summon[Ordering[r]] match { 
               case Some(ord) =>
                 op match {
