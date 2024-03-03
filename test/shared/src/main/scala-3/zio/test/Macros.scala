@@ -147,7 +147,28 @@ object SmartAssertMacros {
 
       case Unseal(Apply(Select(lhs, op @ (">" | ">=" | "<" | "<=")), List(rhs))) =>
         val span = getSpan(rhs)
-        val rhsTpe = if lhs.tpe.widen <:< rhs.tpe then rhs.tpe.widen else lhs.tpe.widen
+        '{($lhs, $rhs)} match {
+          case '{
+            type l 
+            type r >: l
+            (lhs: l, rhs: r)
+          } =>
+            Expr.summon[Ordering[r]] match { 
+              case Some(ord) =>
+                op match {
+                    case ">" =>
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThan[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                    case ">=" =>
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.greaterThanOrEqualTo[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                    case "<" =>
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThan[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                    case "<=" =>
+                      '{${transform(lhs.asExprOf[l])} >>> SmartAssertions.lessThanOrEqualTo[l, `r`](${rhs.asExprOf[`r`]})($ord).span($span)}.asExprOf[TestArrow[Any, A]]
+                }
+              case _ => throw new Error("NO")
+            }
+        } 
+        /*val rhsTpe = if lhs.tpe.widen <:< rhs.tpe then rhs.tpe.widen else lhs.tpe.widen
         (lhs.tpe.widen.asType, rhsTpe.asType) match {
           case ('[l], '[r]) =>
             Expr.summon[Ordering[r]] match { 
@@ -176,7 +197,7 @@ object SmartAssertMacros {
                 }
               case _ => throw new Error("NO")
             }
-        }
+        }*/
 
       case Unseal(MethodCall(lhs, "==", tpes, Some(List(rhs)))) =>
         val span = getSpan(rhs)
