@@ -147,11 +147,11 @@ object SmartAssertMacros {
 
       case Unseal(Apply(Select(lhs, op @ (">" | ">=" | "<" | "<=")), List(rhs))) =>
         val span = getSpan(rhs)
-        '{($lhs, $rhs)} match {
+        '{(${lhs.asExpr}, {rhs.asExpr})} match {
           case '{
             type l 
             type r >: l
-            ($lhs: l, $rhs: r)
+            ($lhs: `l`, $rhs: `r`)
           } =>
             Expr.summon[Ordering[r]] match { 
               case Some(ord) =>
