@@ -326,7 +326,9 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
 
     val equalTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$eq$eq", _, Some(args), _) =>
-        AssertAST("equalTo", List(lhsTpe, args.head.tpe.dealias.widen), args)
+        val argTpe = args.head.tpe.dealias.widen
+        val tpes = if (lhsTpe <:< argTpe) List(lhsTpe, argTpe) else Nil
+        AssertAST("equalTo", tpes, args)
       }
 
     val get: ASTConverter =
@@ -373,22 +375,30 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
 
     val greaterThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>
-        AssertAST("greaterThan", List(lhsTpe, args.head.tpe.dealias.widen), args)
+        val argTpe = args.head.tpe.dealias.widen
+        val tpes = if (lhsTpe <:< argTpe) List(lhsTpe, argTpe) else Nil
+        AssertAST("greaterThan", tpes, args)
       }
 
     val greaterThanOrEqualTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater$eq", _, Some(args), _) =>
-        AssertAST("greaterThanOrEqualTo", List(lhsTpe, args.head.tpe.dealias.widen), args)
+        val argTpe = args.head.tpe.dealias.widen
+        val tpes = if (lhsTpe <:< argTpe) List(lhsTpe, argTpe) else Nil
+        AssertAST("greaterThanOrEqualTo", tpes, args)
       }
 
     val lessThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less", _, Some(args), _) =>
-        AssertAST("lessThan", List(lhsTpe, args.head.tpe.dealias.widen), args)
+        val argTpe = args.head.tpe.dealias.widen
+        val tpes = if (lhsTpe <:< argTpe) List(lhsTpe, argTpe) else Nil
+        AssertAST("lessThan", tpes, args)
       }
 
     val lessThanOrEqualTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less$eq", _, Some(args), _) =>
-        AssertAST("lessThanOrEqualTo", List(lhsTpe, args.head.tpe.dealias.widen), args)
+        val argTpe = args.head.tpe.dealias.widen
+        val tpes = if (lhsTpe <:< argTpe) List(lhsTpe, argTpe) else Nil
+        AssertAST("lessThanOrEqualTo", tpes, args)
       }
 
     val head: ASTConverter =
