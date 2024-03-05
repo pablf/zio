@@ -327,9 +327,9 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
     // `true` for conversion from `lhs` to `rhs`.
     def implicitConversionDirection(lhs: Type, rhs: Type): Option[Boolean] =
       if (tpesPriority(lhs) == -1 || tpesPriority(rhs) == -1) {
-        c.inferImplicitValue(q"$lhs => $rhs") match {
+        c.inferImplicitValue(tq"$lhs => $rhs") match {
           case EmptyTree => {
-            c.inferImplicitValue(q"$rhs => $lhs") match {
+            c.inferImplicitValue(tq"$rhs => $lhs") match {
               case EmptyTree => None
               case _ => Some(false)
             }
@@ -340,7 +340,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
       else if (tpesPriority(lhs) -tpesPriority(rhs) > 0) Some(true)
       else Some(false)
 
-    def comparisonConverter(lhs: Type, args: List[c.Tree], methodName: String): AssertAST = {
+    def comparisonConverter(lhsTpe: Type, args: List[c.Tree], methodName: String): AssertAST = {
       val rhsTpe = args.head.tpe.widen
       if (lhsTpe =:= rhsTpe)
         AssertAST(methodName, List(lhsTpe), args)
