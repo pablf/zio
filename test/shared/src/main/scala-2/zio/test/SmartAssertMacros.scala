@@ -298,13 +298,6 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
         self.unapply(method).orElse(that.unapply(method))
     }
 
-    def mapAST(f: AST => AST): ASTConverter = new ASTConverter {
-      override def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))] =
-        self.unapply(method) match {
-          case (ast, assert, span) => (f(ast), assert, span)
-        }
-    }
-
     def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))]
   }
 
@@ -318,6 +311,45 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
   }
 
   object Matcher {
+
+        def tpesPriority (tpe: Type): Int =
+      tpe.toString match {
+        case "Byte" => 0
+        case "Short" => 1
+        case "Char" => 2
+        case "Int" => 3
+        case "Long" => 4
+        case "Float" => 5
+        case "Double" => 6
+        case _ => -1
+      }
+
+    // `true` for conversion from `lhs` to `rhs`.
+    def implicitConversionDirection(lhs: Type, rhs: Type): Option[Boolean] =
+      if (tpesPriority(lhs) == -1 || tpesPriority(rhs) == -1) {
+        c.inferImplicitValue(q"$lhs => $rhs") match {
+          case EmptyTree => {
+            c.inferImplicitValue(q"$rhs => $lhs") match {
+              case EmptyTree => None
+              case _ => Some(false)
+            }
+          }
+          case _ => Some(true)
+        }
+      }
+      else if (tpesPriority(lhs) -tpesPriority(rhs) > 0) Some(true)
+      else Some(false)
+
+    def comparisonConverter(lhs: Type, args: List[c.Tree], methodName: String): AssertAST = {
+      val rhsTpe = args.head.tpe.widen
+      if (lhsTpe =:= rhsTpe)
+        AssertAST(methodName, List(lhsTpe), args)
+      else implicitConversionDirection(lhsTpe, rhsTpe) match {
+        case Some(true) => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
+        case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
+        case None => AssertAST(methodName, List(lhsTpe), args)
+      }
+    }
 
     def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))] =
       all.reduce(_ orElse _).unapply(method)
@@ -377,47 +409,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
               Some((lhs, AssertAST("isOdd", List(lhsTpe)), span0._1 -> span._2))
             case _ => None
           }
-      }
-
-    def tpesPriority (tpe: Type): Int =
-      tpe.toString match {
-        case "Byte" => 0
-        case "Short" => 1
-        case "Char" => 2
-        case "Int" => 3
-        case "Long" => 4
-        case "Float" => 5
-        case "Double" => 6
-        case _ => -1
-      }
-
-    // `true` for conversion from `lhs` to `rhs`.
-    def implicitConversionDirection(lhs: Type, rhs: Type): Option[Boolean] =
-      if (tpesPriority(lhs) == -1 || tpesPriority(rhs) == -1) {
-        inferImplicitValue(q"$lhs => $rhs") match {
-          case EmptyTree => {
-            inferImplicitValue(q"$rhs => $lhs") match {
-              case EmptyTree => None
-              case _ => Some(false)
-            }
-          }
-          case _ => Some(true)
-        }
-      }
-      else if (tpesPriority(lhs) -tpesPriority(rhs) > 0) Some(true)
-      else Some(false)
-
-    def comparisonConverter(lhs: Type, args: List[Expr], methodName: String): AssertAST = {
-      val rhsTpe = args.head.tpe.widen
-      if (lhsTpe =:= rhsTpe)
-        AssertAST(methodName, List(lhsTpe), args)
-      else implicitConversionDirection(lhsTpe, rhsTpe) match {
-        case Some(true) => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
-        case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
-        case None => AssertAST(methodName, List(lhsTpe), args)
-      }
-    }
-        
+      }        
 
     val greaterThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>
