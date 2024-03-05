@@ -136,15 +136,7 @@ class SmartAssertMacros(val c: blackbox.Context) {
 
       case Matcher(lhs, ast, span) =>
         val tree = AssertAST.toTree(ast)
-        q"${astToAssertion(lhs)} >>> $tree.span($span)"
-
-      case NumericMatcher(lhs, ast, span, compareTpe) =>
-        val tree = AssertAST.toTree(ast)
-        compareTpe match {
-          case Some(tpe) => q"${astToAssertion(lhs)} >>> TestArrow.fromFunction(_.to$tpe) >>> $tree.span($span)"
-          case None => q"${astToAssertion(lhs)} >>> $tree.span($span)"
-        }
-        
+        q"${astToAssertion(lhs)} >>> $tree.span($span)"       
 
       case AST.Method(lhs, lhsTpe, _, name, tpes, args, span) =>
         val select =
@@ -323,75 +315,6 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
           (method.lhs, result, method.span)
         }
     }
-  }
-
-  object NumericMatcher {
-
-
-    def tpesPriority (tpe: Type): Int =
-      tpe.toString match {
-        case "Byte" => 0
-        case "Short" => 1
-        case "Char" => 2
-        case "Int" => 3
-        case "Long" => 4
-        case "Float" => 5
-        case "Double" => 6
-        case _ => -1
-      }
-
-
-    def getNumericTpe(method: AST.Method): (Option[String], Option[String]) = {
-      val lhs = method.lhsTpe
-      val rhs = method.args.head.tpe.widen
-      if (lhs =:= rhs) (None, None)
-      else {
-        val lhp = tpesPriority(lhs)
-        val rhp = tpesPriority(rhs)
-        if (scala.math.min(lhp, rhp) == -1) (None, None)
-        else scala.math.max(lhp, rhp) match {
-          case lhp => (None, ???) 
-          case rhp => (???, None) 
-          case lhp => (None, None) 
-        }
-      }
-    }
-      
-
-    def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int), Option[String])] =
-      all.reduce(_ orElse _).unapply(method).map {
-        case (ast, assert, span) => 
-          val tpes = getNumericTpe(method)
-          (ast, assert, span, tpes._1, tpes._2)
-      }
-
-    val all: List[ASTConverter] = List(
-      NumericMatcher.greaterThan,
-      NumericMatcher.greaterThanOrEqualTo,
-      NumericMatcher.lessThan,
-      NumericMatcher.lessThanOrEqualTo,
-    )
-
-    val greaterThan: ASTConverter =
-      ASTConverter.make { case m@AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>
-        AssertAST("greaterThan", List(lhsTpe), q"$args.to${getNumericTpe}")
-      }
-
-    val greaterThanOrEqualTo: ASTConverter =
-      ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater$eq", _, Some(args), _) =>
-        AssertAST("greaterThanOrEqualTo", List(lhsTpe), args)
-      }
-
-    val lessThan: ASTConverter =
-      ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less", _, Some(args), _) =>
-        AssertAST("lessThan", List(lhsTpe), args)
-      }
-
-    val lessThanOrEqualTo: ASTConverter =
-      ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less$eq", _, Some(args), _) =>
-        AssertAST("lessThanOrEqualTo", List(lhsTpe), args)
-      }
-
   }
 
   object Matcher {
