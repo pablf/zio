@@ -484,15 +484,17 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
       else if (tpesPriority(lhs) -tpesPriority(rhs) > 0) Some(true)
       else Some(false)
 
-    def comparisonConverter(lhs: Type, args: List[Expr], methodName: String): AssertAST =
-        val rhsTpe = args.head.tpe.widen
-        if (lhsTpe =:= rhsTpe)
-          AssertAST(methodName, List(lhsTpe), args)
-        else implicitConversionDirection(lhsTpe, rhsTpe) match {
-          case Some(true) => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
-          case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
-          case None => AssertAST(methodName, List(lhsTpe), args)
-        }
+    def comparisonConverter(lhs: Type, args: List[Expr], methodName: String): AssertAST = {
+      val rhsTpe = args.head.tpe.widen
+      if (lhsTpe =:= rhsTpe)
+        AssertAST(methodName, List(lhsTpe), args)
+      else implicitConversionDirection(lhsTpe, rhsTpe) match {
+        case Some(true) => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
+        case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
+        case None => AssertAST(methodName, List(lhsTpe), args)
+      }
+    }
+        
 
     val greaterThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>

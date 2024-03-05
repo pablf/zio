@@ -200,7 +200,7 @@ object SmartAssertMacros {
           case Some(false) =>
             (lhs.tpe.widen.asType, rhs.tpe.widen.asType) match {
               case ('[l], '[r]) => 
-                (Expr.summon[Ordering[r]], Expr.summon[r => l]) match { 
+                (Expr.summon[Ordering[l]], Expr.summon[r => l]) match { 
                   case (Some(ord), Some(conv)) =>
                     op match {
                         case ">" =>
