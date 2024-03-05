@@ -277,6 +277,70 @@ object SmartAssertions {
         }
       }
 
+  def greaterThanL[A, B](that: B)(implicit ordering: Ordering[B], conv: (A => B)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { (a: A) =>
+        TestTrace.boolean(ordering.gt(conv(a), that)) {
+          M.pretty(a) + M.was + "greater than" + M.pretty(that)
+        }
+      }
+
+  def greaterThanOrEqualToL[A, B](that: B)(implicit ordering: Ordering[B], conv: (A => B)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { a =>
+        TestTrace.boolean(ordering.gteq(conv(a), that)) {
+          M.pretty(a) + M.was + s"greater than or equal to" + M.pretty(that)
+        }
+      }
+
+  def lessThanL[A, B](that: B)(implicit ordering: Ordering[B], conv: (A => B)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { a =>
+        TestTrace.boolean(ordering.lt(conv(a), that)) {
+          M.pretty(a) + M.was + "less than" + M.pretty(that)
+        }
+      }
+
+  def lessThanOrEqualToL[A, B](that: B)(implicit ordering: Ordering[B], conv: (A => B)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { a =>
+        TestTrace.boolean(ordering.lteq(conv(a), that)) {
+          M.pretty(a) + M.was + "less than or equal to" + M.pretty(that)
+        }
+      }
+
+  def greaterThanR[A, B](that: B)(implicit ordering: Ordering[A], conv: (B => A)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { (a: A) =>
+        TestTrace.boolean(ordering.gt(a, conv(that))) {
+          M.pretty(a) + M.was + "greater than" + M.pretty(that)
+        }
+      }
+
+  def greaterThanOrEqualToR[A, B](that: B)(implicit ordering: Ordering[A], conv: (B => A)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { a =>
+        TestTrace.boolean(ordering.gteq(a, conv(that))) {
+          M.pretty(a) + M.was + s"greater than or equal to" + M.pretty(that)
+        }
+      }
+
+  def lessThanR[A, B](that: B)(implicit ordering: Ordering[A], conv: (B => A)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { a =>
+        TestTrace.boolean(ordering.lt(a, conv(that))) {
+          M.pretty(a) + M.was + "less than" + M.pretty(that)
+        }
+      }
+
+  def lessThanOrEqualToR[A, B](that: B)(implicit ordering: Ordering[A], conv: (B => A)): TestArrow[A, Boolean] =
+    TestArrow
+      .make[A, Boolean] { a =>
+        TestTrace.boolean(ordering.lteq(a, conv(that))) {
+          M.pretty(a) + M.was + "less than or equal to" + M.pretty(that)
+        }
+      }
+
   def equalTo[A](that: A)(implicit diff: OptionalImplicit[Diff[A]]): TestArrow[A, Boolean] =
     TestArrow
       .make[A, Boolean] { a =>

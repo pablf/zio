@@ -138,6 +138,14 @@ class SmartAssertMacros(val c: blackbox.Context) {
         val tree = AssertAST.toTree(ast)
         q"${astToAssertion(lhs)} >>> $tree.span($span)"
 
+      case NumericMatcher(lhs, ast, span, compareTpe) =>
+        val tree = AssertAST.toTree(ast)
+        compareTpe match {
+          case Some(tpe) => q"${astToAssertion(lhs)} >>> TestArrow.fromFunction(_.to$tpe) >>> $tree.span($span)"
+          case None => q"${astToAssertion(lhs)} >>> $tree.span($span)"
+        }
+        
+
       case AST.Method(lhs, lhsTpe, _, name, tpes, args, span) =>
         val select =
           args match {
@@ -298,6 +306,13 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
         self.unapply(method).orElse(that.unapply(method))
     }
 
+    def mapAST(f: AST => AST): ASTConverter = new ASTConverter {
+      override def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))] =
+        self.unapply(method) match {
+          case (ast, assert, span) => (f(ast), assert, span)
+        }
+    }
+
     def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))]
   }
 
@@ -310,7 +325,77 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
     }
   }
 
+  object NumericMatcher {
+
+
+    def tpesPriority (tpe: Type): Int =
+      tpe.toString match {
+        case "Byte" => 0
+        case "Short" => 1
+        case "Char" => 2
+        case "Int" => 3
+        case "Long" => 4
+        case "Float" => 5
+        case "Double" => 6
+        case _ => -1
+      }
+
+
+    def getNumericTpe(method: AST.Method): (Option[String], Option[String]) = {
+      val lhs = method.lhsTpe
+      val rhs = method.args.head.tpe.widen
+      if (lhs =:= rhs) (None, None)
+      else {
+        val lhp = tpesPriority(lhs)
+        val rhp = tpesPriority(rhs)
+        if (scala.math.min(lhp, rhp) == -1) (None, None)
+        else scala.math.max(lhp, rhp) match {
+          case lhp => (None, ???) 
+          case rhp => (???, None) 
+          case lhp => (None, None) 
+        }
+      }
+    }
+      
+
+    def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int), Option[String])] =
+      all.reduce(_ orElse _).unapply(method).map {
+        case (ast, assert, span) => 
+          val tpes = getNumericTpe(method)
+          (ast, assert, span, tpes._1, tpes._2)
+      }
+
+    val all: List[ASTConverter] = List(
+      NumericMatcher.greaterThan,
+      NumericMatcher.greaterThanOrEqualTo,
+      NumericMatcher.lessThan,
+      NumericMatcher.lessThanOrEqualTo,
+    )
+
+    val greaterThan: ASTConverter =
+      ASTConverter.make { case m@AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>
+        AssertAST("greaterThan", List(lhsTpe), q"$args.to${getNumericTpe}")
+      }
+
+    val greaterThanOrEqualTo: ASTConverter =
+      ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater$eq", _, Some(args), _) =>
+        AssertAST("greaterThanOrEqualTo", List(lhsTpe), args)
+      }
+
+    val lessThan: ASTConverter =
+      ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less", _, Some(args), _) =>
+        AssertAST("lessThan", List(lhsTpe), args)
+      }
+
+    val lessThanOrEqualTo: ASTConverter =
+      ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less$eq", _, Some(args), _) =>
+        AssertAST("lessThanOrEqualTo", List(lhsTpe), args)
+      }
+
+  }
+
   object Matcher {
+
     def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))] =
       all.reduce(_ orElse _).unapply(method)
 
@@ -371,24 +456,62 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
           }
       }
 
+    def tpesPriority (tpe: Type): Int =
+      tpe.toString match {
+        case "Byte" => 0
+        case "Short" => 1
+        case "Char" => 2
+        case "Int" => 3
+        case "Long" => 4
+        case "Float" => 5
+        case "Double" => 6
+        case _ => -1
+      }
+
+    // `true` for conversion from `lhs` to `rhs`.
+    def implicitConversionDirection(lhs: Type, rhs: Type): Option[Boolean] =
+      if (tpesPriority(lhs) == -1 || tpesPriority(rhs) == -1) {
+        inferImplicitValue(q"$lhs => $rhs") match {
+          case EmptyTree => {
+            inferImplicitValue(q"$rhs => $lhs") match {
+              case EmptyTree => None
+              case _ => Some(false)
+            }
+          }
+          case _ => Some(true)
+        }
+      }
+      else if (tpesPriority(lhs) -tpesPriority(rhs) > 0) Some(true)
+      else Some(false)
+
+    def comparisonConverter(lhs: Type, args: List[Expr], methodName: String): AssertAST =
+        val rhsTpe = args.head.tpe.widen
+        if (lhsTpe =:= rhsTpe)
+          AssertAST(methodName, List(lhsTpe), args)
+        else implicitConversionDirection(lhsTpe, rhsTpe) match {
+          case Some(true) => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
+          case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
+          case None => AssertAST(methodName, List(lhsTpe), args)
+        }
+
     val greaterThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>
-        AssertAST("greaterThan", List(lhsTpe), args)
+        comparisonConverter(lhsTpe, args, "greaterThan")
       }
 
     val greaterThanOrEqualTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater$eq", _, Some(args), _) =>
-        AssertAST("greaterThanOrEqualTo", List(lhsTpe), args)
+        comparisonConverter(lhsTpe, args, "greaterThanOrEqualTo")
       }
 
     val lessThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less", _, Some(args), _) =>
-        AssertAST("lessThan", List(lhsTpe), args)
+        comparisonConverter(lhsTpe, args, "lessThan")
       }
 
     val lessThanOrEqualTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$less$eq", _, Some(args), _) =>
-        AssertAST("lessThanOrEqualTo", List(lhsTpe), args)
+        comparisonConverter(lhsTpe, args, "lessThanOrEqualTo")
       }
 
     val head: ASTConverter =
