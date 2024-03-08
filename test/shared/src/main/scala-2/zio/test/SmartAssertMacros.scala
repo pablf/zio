@@ -136,7 +136,7 @@ class SmartAssertMacros(val c: blackbox.Context) {
 
       case Matcher(lhs, ast, span) =>
         val tree = AssertAST.toTree(ast)
-        q"${astToAssertion(lhs)} >>> $tree.span($span)"       
+        q"${astToAssertion(lhs)} >>> $tree.span($span)"
 
       case AST.Method(lhs, lhsTpe, _, name, tpes, args, span) =>
         val select =
@@ -312,16 +312,16 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
 
   object Matcher {
 
-        def tpesPriority (tpe: Type): Int =
+    def tpesPriority(tpe: Type): Int =
       tpe.toString match {
-        case "Byte" => 0
-        case "Short" => 1
-        case "Char" => 2
-        case "Int" => 3
-        case "Long" => 4
-        case "Float" => 5
+        case "Byte"   => 0
+        case "Short"  => 1
+        case "Char"   => 2
+        case "Int"    => 3
+        case "Long"   => 4
+        case "Float"  => 5
         case "Double" => 6
-        case _ => -1
+        case _        => -1
       }
 
     // `true` for conversion from `lhs` to `rhs`.
@@ -331,24 +331,24 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
           case EmptyTree => {
             c.inferImplicitValue((tq"$rhs => $lhs").tpe) match {
               case EmptyTree => None
-              case _ => Some(false)
+              case _         => Some(false)
             }
           }
           case _ => Some(true)
         }
-      }
-      else if (tpesPriority(lhs) -tpesPriority(rhs) > 0) Some(true)
+      } else if (tpesPriority(lhs) - tpesPriority(rhs) > 0) Some(true)
       else Some(false)
 
     def comparisonConverter(lhsTpe: Type, args: List[c.Tree], methodName: String): AssertAST = {
       val rhsTpe = args.head.tpe.widen
       if (lhsTpe =:= rhsTpe)
         AssertAST(methodName, List(lhsTpe), args)
-      else implicitConversionDirection(lhsTpe, rhsTpe) match {
-        case Some(true) => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
-        case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
-        case None => AssertAST(methodName, List(lhsTpe), args)
-      }
+      else
+        implicitConversionDirection(lhsTpe, rhsTpe) match {
+          case Some(true)  => AssertAST(methodName ++ "L", List(lhsTpe, rhsTpe), args)
+          case Some(false) => AssertAST(methodName ++ "R", List(lhsTpe, rhsTpe), args)
+          case None        => AssertAST(methodName, List(lhsTpe), args)
+        }
     }
 
     def unapply(method: AST.Method): Option[(AST, AssertAST, (Int, Int))] =
@@ -409,7 +409,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
               Some((lhs, AssertAST("isOdd", List(lhsTpe)), span0._1 -> span._2))
             case _ => None
           }
-      }        
+      }
 
     val greaterThan: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$greater", _, Some(args), _) =>
