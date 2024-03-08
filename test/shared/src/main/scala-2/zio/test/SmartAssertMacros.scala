@@ -336,7 +336,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
           }
           case _ => Some(true)
         }
-      } else if (tpesPriority(lhs) - tpesPriority(rhs) > 0) Some(true)
+      } else if (tpesPriority(rhs) - tpesPriority(lhs) > 0) Some(true)
       else Some(false)
 
     def comparisonConverter(lhsTpe: Type, args: List[c.Tree], methodName: String): AssertAST = {
@@ -366,7 +366,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
 
     val equalTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$eq$eq", _, Some(args), _) =>
-        AssertAST("equalTo", List(lhsTpe), args)
+        AssertAST("equalTo", Nil, args)
       }
 
     val get: ASTConverter =
