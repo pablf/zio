@@ -327,9 +327,9 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
     // `true` for conversion from `lhs` to `rhs`.
     def implicitConversionDirection(lhs: Type, rhs: Type): Option[Boolean] =
       if (tpesPriority(lhs) == -1 || tpesPriority(rhs) == -1) {
-        Try(c.inferImplicitValue((tq"$lhs => $rhs").tpe)).getOrElse(EmptyTree) match {
+        scala.util.Try(c.inferImplicitValue((tq"$lhs => $rhs").tpe)).getOrElse(EmptyTree) match {
           case EmptyTree => {
-            Try(c.inferImplicitValue((tq"$rhs => $lhs").tpe)).getOrElse(EmptyTree) match {
+            scala.util.Try(c.inferImplicitValue((tq"$rhs => $lhs").tpe)).getOrElse(EmptyTree) match {
               case EmptyTree => None
               case _         => Some(false)
             }
