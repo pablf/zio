@@ -232,7 +232,6 @@ object SmartAssertMacros {
               '{$lhsExpr >>> $assertExpr.span($span)}
           }
 
-
       case Unseal(tree) =>
         val span = getSpan(tree)
        '{TestArrow.succeed($expr).span($span)}
