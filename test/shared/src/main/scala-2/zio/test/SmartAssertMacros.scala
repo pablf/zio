@@ -366,7 +366,7 @@ $TestResult($ast.withCode($codeString).meta(location = $location))
 
     val equalTo: ASTConverter =
       ASTConverter.make { case AST.Method(_, lhsTpe, _, "$eq$eq", _, Some(args), _) =>
-        AssertAST("equalTo", Nil, args)
+        comparisonConverter(lhsTpe, args, "equalTo")
       }
 
     val get: ASTConverter =
