@@ -571,6 +571,7 @@ lazy val testJunitRunnerTests = crossProject(JVMPlatform) // TODO: make plain pr
       "org.apache.maven"       % "maven-compat"           % "4.0.0-alpha-12"  % Test,
       "org.apache.maven.resolver"       % "maven-resolver-connector-basic" % "1.9.18"  % Test,
       "org.apache.maven.resolver"       % "maven-resolver-transport-http" % "1.9.18"  % Test,
+      "org.codehaus.plexus" % "plexus-component-annotations" % "2.2.0" % Test,
       //"org.apache.maven.wagon" % "wagon-http"             % "3.5.3"  % Test,
       //"org.eclipse.aether"     % "aether-connector-basic" % "1.1.0"  % Test,
       //"org.eclipse.aether"     % "aether-transport-wagon" % "1.1.0"  % Test,
