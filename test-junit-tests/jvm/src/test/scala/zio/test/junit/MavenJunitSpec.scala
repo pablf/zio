@@ -24,6 +24,7 @@
 //         mvn       <- makeMaven
 //         mvnResult <- mvn.clean() *> mvn.test()
 //         report    <- mvn.parseSurefireReport("zio.test.junit.maven.FailingSpec")
+//         reportD   <- mvn.parseSurefireReport("zio.test.junit.maven.DefectSpec")
 //       } yield {
 //         assert(mvnResult)(not(equalTo(0))) &&
 //         assert(report)(
@@ -40,7 +41,11 @@
 //                  |Some(11) did not satisfy isSome(equalTo(12))
 //                  |at ${mvn.mvnRoot}/src/test/scala/zio/test/junit/maven/FailingSpec.scala:13""".stripMargin
 //             ) &&
-//             containsSuccess("should succeed")
+//             containsSuccess("should succeed") &&
+//             containsFailure(
+//              "test with defect",
+//              ""
+//              )
 //         )
 //       }
 //     }
