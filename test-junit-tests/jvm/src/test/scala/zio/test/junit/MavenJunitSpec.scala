@@ -2,8 +2,8 @@ package zio.test.junit
 
 import org.apache.maven.cli.MavenCli
 import zio.test.Assertion._
-import zio.test.{DefaultRunnableSpec, Spec, _}
-import zio.{System => _, _}
+import zio.test.{ZIOSpecDefault, Spec, _}
+import zio.{System => _, ZIO, Task}
 
 import java.io.File
 import scala.collection.immutable
@@ -16,9 +16,9 @@ import scala.xml.XML
  * `-Dproject.dir=\$PROJECT_DIR\$/test-junit-tests/jvm
  * -Dproject.version=\$snapshotVersion`
  */
-object MavenJunitSpec extends DefaultRunnableSpec {
+object MavenJunitSpec extends ZIOSpecDefault {
 
-  def spec: Spec[Environment, Any] = suite("MavenJunitSpec")(
+  def spec = suite("MavenJunitSpec")(
     test("FailingSpec results are properly reported") {
       for {
         mvn       <- makeMaven
