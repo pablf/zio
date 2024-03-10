@@ -56,11 +56,6 @@
             <artifactId>surefire-junit47</artifactId>
             <version>3.0.0-M5</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <version>7.0.0</version>
-        </dependency>
     </dependencies>
 
 
