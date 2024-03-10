@@ -363,6 +363,31 @@ object AccessibleSpec extends ZIOSpecDefault {
         }
         def layer = ZLayer.succeed(new Module.Service {})
         assertZIO(Module.test().flip.provide(layer))(hasField("message", _.getMessage, equalTo("ups")))
+      },
+      test("deprecated annotation pass to accessor") {
+        assertZIO(typeCheck {
+          """
+            @accessible
+            object Module {
+              trait Service {
+                @deprecated
+                def test(): Unit = throw new Exception("ups")
+              }
+            }
+
+            Module.test()
+          """
+        })(isLeft(anything))
+      },
+      test("deprecated annotation doesn't throw warning"){
+        @accessible
+        object Module {
+          trait Service {
+            @deprecated
+            def test(): Unit = throw new Exception("ups")
+          }
+        }
+        assertTrue(true)
       }
     )
   )
