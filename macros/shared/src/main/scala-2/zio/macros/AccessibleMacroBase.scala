@@ -255,7 +255,7 @@ private[macros] abstract class AccessibleMacroBase(val c: whitebox.Context) {
         moduleInfo.service.impl.body.collect {
           case DefDef(mods, termName, tparams, argLists, tree: Tree, _) if termName != constructorName =>
             makeAccessor(
-              mods.mapAnnotations(annot => q"new scala.annotation.nowarn" :: annot)
+              mods.mapAnnotations(annot => q"new scala.annotation.nowarn" :: annot),
               termName,
               withThrowing(mods, tree),
               moduleInfo.serviceTypeParams,
@@ -267,7 +267,7 @@ private[macros] abstract class AccessibleMacroBase(val c: whitebox.Context) {
 
           case ValDef(_, termName, tree: Tree, _) =>
             makeAccessor(
-              NoMods
+              NoMods,
               termName,
               typeInfo(tree),
               moduleInfo.serviceTypeParams,
