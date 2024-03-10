@@ -41,7 +41,9 @@ object MavenJunitSpec extends ZIOSpecDefault {
                  |Some(11) did not satisfy isSome(equalTo(12))
                  |at ${mvn.mvnRoot}/src/test/scala/zio/test/junit/maven/FailingSpec.scala:13""".stripMargin
             ) &&
-            containsSuccess("should succeed") &&
+            containsSuccess("should succeed")
+         ) &&
+         assert(reportD)(
             containsFailure(
              "test with defect",
              ""
