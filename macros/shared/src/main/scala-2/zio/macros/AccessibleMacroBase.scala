@@ -257,7 +257,7 @@ private[macros] abstract class AccessibleMacroBase(val c: whitebox.Context) {
             makeAccessor(
               mods.mapAnnotations{annot =>
                 annot.find {
-                  case q"new $name" => throw new Throwable(name.toString)//name.toString.contains("deprecated") == classOf[scala.deprecated].getSimpleName()
+                  case q"new $name" => name.toString.contains("deprecated")
                   case _ => false
                 } match {
                   case Some(ann) => q"new scala.annotation.nowarn" :: ann :: Nil
