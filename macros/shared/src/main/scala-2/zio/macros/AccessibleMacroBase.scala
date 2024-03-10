@@ -255,7 +255,14 @@ private[macros] abstract class AccessibleMacroBase(val c: whitebox.Context) {
         moduleInfo.service.impl.body.collect {
           case DefDef(mods, termName, tparams, argLists, tree: Tree, _) if termName != constructorName =>
             makeAccessor(
-              mods.mapAnnotations(annot => q"new scala.annotation.nowarn" :: annot),
+              mods.mapAnnotations{annot =>
+                annot.find { ann =>
+                  case q"new $name" => name.toString == classOf[scala.deprecated].getSimpleName()
+                } match {
+                  case Some(ann) => q"new scala.annotation.nowarn" :: ann :: Nil
+                  case None => Nil
+                }
+              },
               termName,
               withThrowing(mods, tree),
               moduleInfo.serviceTypeParams,
