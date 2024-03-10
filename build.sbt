@@ -567,6 +567,7 @@ lazy val testJunitRunnerTests = crossProject(JVMPlatform) // TODO: make plain pr
       // required to run embedded maven in the tests
       "org.apache.maven"       % "maven-embedder"         % "4.0.0-alpha-12"  % Test,
       "com.google.inject" % "guice" % "7.0.0" % Test,
+      "org.eclipse.sisu" % "org.eclipse.sisu.inject" % "0.3.5" % Test,
       "org.apache.maven"       % "maven-compat"           % "4.0.0-alpha-12"  % Test,
       "org.apache.maven.resolver"       % "maven-resolver-connector-basic" % "1.9.18"  % Test,
       "org.apache.maven.resolver"       % "maven-resolver-transport-http" % "1.9.18"  % Test,
