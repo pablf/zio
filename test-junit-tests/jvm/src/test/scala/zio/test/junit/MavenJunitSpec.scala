@@ -2,7 +2,7 @@ package zio.test.junit
 
 import org.apache.maven.cli.MavenCli
 import zio.test.Assertion._
-import zio.test.{ZIOSpecDefault, Spec, _}
+import zio.test.{ZIOSpecDefault, _}
 import zio.{System => _, ZIO, Task}
 
 import java.io.File
