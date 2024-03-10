@@ -12,9 +12,9 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <scala.version>2.13.8</scala.version>
+        <scala.version>2.13.12</scala.version>
         <scala.compat.version>2.12</scala.compat.version>
-        <zio.version>2.0.0</zio.version>
+        <zio.version>2.0.21</zio.version>
     </properties>
 
     <dependencies>
