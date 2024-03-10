@@ -381,7 +381,7 @@ object AccessibleSpec extends ZIOSpecDefault {
       },
       test("deprecated annotation doesn't throw warning"){
         @accessible
-        object Module {
+        trait Module {
             @deprecated("msg", "v")
             def test(): Unit = throw new Exception("ups")
         }
