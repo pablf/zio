@@ -258,7 +258,7 @@ private[macros] abstract class AccessibleMacroBase(val c: whitebox.Context) {
               NoMods.mapAnnotations { _ =>
                 mods.annotations.filter {
                   case q"new $name" => name.toString.contains("deprecated")
-                  case _ => false
+                  case _            => false
                 }
               },
               termName,

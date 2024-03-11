@@ -373,10 +373,11 @@ object AccessibleSpec extends ZIOSpecDefault {
           }
         }
         def layer = ZLayer.succeed(new Module.Service {})
-        @annotation.nowarn def test(): ZIO[Any, Nothing, Int] = Module.test().provide(layer)
+        @annotation.nowarn
+        def test(): ZIO[Any, Nothing, Int] = Module.test().flip().provide(layer)
         assertZIO(test())(equalTo(0))
       },
-      test("deprecated annotation doesn't throw warning"){
+      test("deprecated annotation doesn't throw warning") {
         @accessible
         object Module {
           trait Service {
