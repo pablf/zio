@@ -9,8 +9,6 @@
     <inceptionYear>2020</inceptionYear>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <scala.version>2.13.12</scala.version>
         <scala.compat.version>2.12</scala.compat.version>
