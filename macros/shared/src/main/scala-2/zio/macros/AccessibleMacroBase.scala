@@ -255,8 +255,8 @@ private[macros] abstract class AccessibleMacroBase(val c: whitebox.Context) {
         moduleInfo.service.impl.body.collect {
           case DefDef(mods, termName, tparams, argLists, tree: Tree, _) if termName != constructorName =>
             makeAccessor(
-              mods.mapAnnotations{annot =>
-                annot.find {
+              NoMods.mapAnnotations { _ =>
+                mods.annotations.find {
                   case q"new $name" => name.toString.contains("deprecated")
                   case _ => false
                 } match {
