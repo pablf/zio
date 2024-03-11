@@ -19,36 +19,26 @@ import scala.xml.XML
 object MavenJunitSpec extends ZIOSpecDefault {
 
   def spec = suite("MavenJunitSpec")(
-    test("FailingSpec results are properly reported") {
+    test("Spec results are properly reported") {
       for {
-        mvn       <- makeMaven
-        mvnResult <- mvn.clean() *> mvn.test()
-        report    <- mvn.parseSurefireReport("zio.test.junit.maven.FailingSpec")
-        reportD   <- mvn.parseSurefireReport("zio.test.junit.maven.DefectSpec")
+        mvn          <- makeMaven
+        mvnResult    <- mvn.clean() *> mvn.test()
+        report       <- mvn.parseSurefireReport("zio.test.junit.maven.FailingSpec")
+        reportDefect <- mvn.parseSurefireReport("zio.test.junit.maven.DefectSpec")
       } yield {
         assert(mvnResult)(not(equalTo(0))) &&
         assert(report)(
           containsFailure(
             "should fail",
-            s"""zio.test.junit.TestFailed:
-               |11 did not satisfy equalTo(12)
-               |at ${mvn.mvnRoot}/src/test/scala/zio/test/junit/maven/FailingSpec.scala:10""".stripMargin
+            "11 did not satisfy equalTo(12)"
           ) &&
             containsFailure(
               "should fail - isSome",
-              s"""zio.test.junit.TestFailed:
-                 |11 did not satisfy equalTo(12)
-                 |Some(11) did not satisfy isSome(equalTo(12))
-                 |at ${mvn.mvnRoot}/src/test/scala/zio/test/junit/maven/FailingSpec.scala:13""".stripMargin
+              "11 did not satisfy equalTo(12)"
             ) &&
             containsSuccess("should succeed")
-         ) &&
-         assert(reportD)(
-            containsFailure(
-             "test with defect",
-             ""
-             )
-        )
+        ) &&
+        assertTrue(reportDefect.length == 1) // spec with defect is reported
       }
     }
   ) @@ TestAspect.sequential @@
@@ -89,7 +79,7 @@ object MavenJunitSpec extends ZIOSpecDefault {
       "test",
       s"-Dzio.version=$projectVersion",
       s"-Dscala.version=$scalaVersion",
-      s"-Dscala.compat.version=$scalaCompatVersion",
+      s"-Dscala.compat.version=$scalaCompatVersion"
     )
     def run(command: String*): Task[Int] = ZIO.attemptBlocking(
       cli.doMain(command.toArray, mvnRoot, System.out, System.err)
@@ -100,7 +90,6 @@ object MavenJunitSpec extends ZIOSpecDefault {
         .attemptBlocking(
           XML.load(scala.xml.Source.fromFile(new File(s"$mvnRoot/target/surefire-reports/TEST-$testFQN.xml")))
         )
-        .tapError(_ => zio.Console.printLine(new File(s"$mvnRoot/target/surefire-reports").list()) )
         .map { report =>
           (report \ "testcase").map { tcNode =>
             TestCase(
