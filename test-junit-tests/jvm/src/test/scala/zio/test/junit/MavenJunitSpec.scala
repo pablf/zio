@@ -90,7 +90,6 @@ object MavenJunitSpec extends ZIOSpecDefault {
       s"-Dzio.version=$projectVersion",
       s"-Dscala.version=$scalaVersion",
       s"-Dscala.compat.version=$scalaCompatVersion",
-      s"-ssettings.xml"
     )
     def run(command: String*): Task[Int] = ZIO.attemptBlocking(
       cli.doMain(command.toArray, mvnRoot, System.out, System.err)
