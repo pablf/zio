@@ -100,7 +100,7 @@ object MavenJunitSpec extends ZIOSpecDefault {
         .attemptBlocking(
           XML.load(scala.xml.Source.fromFile(new File(s"$mvnRoot/target/surefire-reports/TEST-$testFQN.xml")))
         )
-        .tapError(_ => Console.printLine(new File(s"$mvnRoot/target/surefire-reports").list()) )
+        .tapError(_ => zio.Console.printLine(new File(s"$mvnRoot/target/surefire-reports").list()) )
         .map { report =>
           (report \ "testcase").map { tcNode =>
             TestCase(
