@@ -589,6 +589,7 @@ lazy val testJunitRunnerTests = crossProject(JVMPlatform) // TODO: make plain pr
         .dependsOn(testJunitRunner / publishM2)
         .dependsOn(tests.jvm / publishM2)
         .dependsOn(core.jvm / publishM2)
+        .dependsOn(internalMacros.jvm / publishM2)
         .dependsOn(streams.jvm / publishM2)
         .dependsOn(stacktracer.jvm / publishM2)
         .value
