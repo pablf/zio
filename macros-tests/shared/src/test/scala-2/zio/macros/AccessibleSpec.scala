@@ -370,7 +370,7 @@ object AccessibleSpec extends ZIOSpecDefault {
             @accessible
             object Module {
               trait Service {
-                @deprecated
+                @deprecated("msg", "v")
                 def test(): Unit = throw new Exception("ups")
               }
             }
