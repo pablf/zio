@@ -565,10 +565,10 @@ lazy val testJunitRunnerTests = crossProject(JVMPlatform) // TODO: make plain pr
       "junit"                   % "junit"     % "4.13.2" % Test,
       "org.scala-lang.modules" %% "scala-xml" % "2.2.0"  % Test,
       // required to run embedded maven in the tests
-      "org.apache.maven"       % "maven-embedder"         % "4.0.0-alpha-12"  % Test,
+      "org.apache.maven"       % "maven-embedder"         % "3.9.6"  % Test,
+      "org.apache.maven"       % "maven-compat"           % "3.9.6"  % Test,
       "com.google.inject" % "guice" % "4.0" % Test,
       "org.eclipse.sisu" % "org.eclipse.sisu.inject" % "0.3.5" % Test,
-      "org.apache.maven"       % "maven-compat"           % "4.0.0-alpha-12"  % Test,
       "org.apache.maven.resolver"       % "maven-resolver-connector-basic" % "1.9.18"  % Test,
       "org.apache.maven.resolver"       % "maven-resolver-transport-http" % "1.9.18"  % Test,
       "org.codehaus.plexus" % "plexus-component-annotations" % "2.2.0" % Test,
