@@ -380,12 +380,17 @@ object AccessibleSpec extends ZIOSpecDefault {
         })(isLeft(anything))
       },
       test("deprecated annotation doesn't throw warning"){
-        @accessible
-        trait Module {
-            @deprecated("msg", "v")
-            def test(): Unit = throw new Exception("ups")
-        }
-        assertTrue(true)
+        assertZIO(typeCheck {
+          """
+            @accessible
+            object Module {
+              trait Service {
+                @deprecated("msg", "v")
+                def test(): Unit = throw new Exception("ups")
+              }
+            }
+          """
+        })(isRight(anything))
       }
     )
   )
