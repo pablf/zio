@@ -107,9 +107,8 @@ object MavenJunitSpec extends ZIOSpecDefault {
   def containsResult(label: String, error: Option[String]): Assertion[Iterable[TestCase]] =
     exists(assertion(s"check $label") { testCase =>
       testCase.name == label &&
-      error.map(err => testCase.error.map(_.message.contains(err)).getOrElse(false)).getOrElse(testCase.error.isNone)
+      error.map(err => testCase.error.map(_.message.contains(err)).getOrElse(false)).getOrElse(testCase.error == None)
     })
-  contains(TestCase(label, error.map(TestError(_, "zio.test.junit.TestFailed"))))
 
   case class TestCase(name: String, error: Option[TestError])
   case class TestError(message: String, `type`: String)
