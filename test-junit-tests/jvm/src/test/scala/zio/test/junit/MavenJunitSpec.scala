@@ -30,11 +30,11 @@ object MavenJunitSpec extends ZIOSpecDefault {
         assert(report)(
           containsFailure(
             "should fail",
-            "11 did not satisfy equalTo(12)"
+            "11 was not equal to 12"
           ) &&
             containsFailure(
               "should fail - isSome",
-              "11 did not satisfy equalTo(12)"
+              "11 was not equal to 12"
             ) &&
             containsSuccess("should succeed")
         ) &&
