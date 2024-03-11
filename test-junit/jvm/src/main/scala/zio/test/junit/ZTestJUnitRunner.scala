@@ -162,10 +162,10 @@ class ZTestJUnitRunner(klass: Class[_]) extends Runner with Filterable {
               notifier.fireTestFinished(label, path)
           case Ignored(_) => notifier.fireTestIgnored(label, path)
         }
-      ).tapDefect { e =>
+      )/*.tapDefect { e =>
         notifier.fireTestStarted(label, path) *>
               reportRuntimeFailure(notifier, path, label, e)
-      }
+      }*/
     def loop(specCase: ZSpecCase, path: Vector[String] = Vector.empty): ZSpecCase =
       specCase match {
         case Spec.ExecCase(exec, spec) =>
