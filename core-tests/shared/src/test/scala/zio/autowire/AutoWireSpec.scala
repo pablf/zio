@@ -220,6 +220,25 @@ object AutoWireSpec extends ZIOBaseSpec {
                 ZLayer.succeed(true) ++ ZLayer.succeed(100.1) >>> layer
               )
             assertZIO(provided)(equalTo(128))
+          },
+          test("connecting layer with overlapping input compiles") {
+            val stringLayer = ZLayer {
+              ZIO.service[String].map(_.length)
+            }
+            val intLayer = ZLayer {
+              (ZIO.service[String] <*> ZIO.service[Double]).map { case (str, double) =>
+                str.length + double.toInt
+              }
+            }
+            val program = ZIO.service[Int]
+
+            val layer =
+              ZLayer.makeSome[Double, Int](intLayer, stringLayer)
+            val provided =
+              program.provideLayer(
+                ZLayer.succeed(true) ++ ZLayer.succeed(100.1) >>> layer
+              )
+            assertZIO(provided)(equalTo(128))
           }
         )
       )
