@@ -131,7 +131,8 @@ final case class Graph[Key, A](
                     }
                   }
       } yield result
-    }.map { deps
+    }.map {
+      deps
       if (deps.all(_._2)) LayerTree.succeed(node.value)
       else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
     }
