@@ -239,6 +239,52 @@ object AutoWireSpec extends ZIOBaseSpec {
                 ZLayer.succeed(true) ++ ZLayer.succeed(100.1) >>> layer
               )
             assertZIO(provided)(equalTo(128))
+          },
+          test("makeSome 1 layer") {
+            def test1[A, B](a: ZLayer[A, Nothing, B]) =
+              ZLayer.makeSome[A, B]
+
+            def test2[A, B](a: ZLayer[A, Nothing, B]) =
+              ZLayer.makeSome[A, A&B]
+            assertTrue(true)
+          },
+          test("makeSome 2 simple layers") {
+            def test1[I1, O1, I2, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I2, Nothing, O2]) =
+              ZLayer.makeSome[I1&I2, O1&O2](a, b)
+
+            def test2[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[O1, Nothing, O2]) =
+              ZLayer.makeSome[I1, O1&O2](a, b)
+
+            def test3[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[O1, Nothing, O2]) =
+              ZLayer.makeSome[I1, O2](a, b)
+
+            def test4[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
+              ZLayer.makeSome[I1, O1](a, b)
+
+            def test5[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
+              ZLayer.makeSome[I1, O2](a, b)
+
+            def test6[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
+              ZLayer.makeSome[I1, O1&O2](a, b)
+
+            assertTrue(true)
+          },
+          test("makeSome 2 complex layers") {
+            def test[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]) =
+              ZLayer.makeSome[Int, R](a, b)
+
+            def test1[I1,I2,I3,I4,O1,O2,O3](a: ZLayer[I1&I2, Nothing, O1&O2], b: ZLayer[I3&I4, Nothing, O3]) =
+              ZLayer.makeSome[I1&I2&I3&I4, O1&O2&O3](a, b)
+
+            def test2[I1,I2,I4,O1,O2,O3](a: ZLayer[I1&I2, Nothing, O1&O2], b: ZLayer[I1&I4, Nothing, O3]) =
+              ZLayer.makeSome[I1&I2&I4, O1&O2&O3&O4](a, b)
+
+            //def test3[I1,I2,I4,O1,O2,O3](a: ZLayer[I1&I2, Nothing, O1&O2], b: ZLayer[O1&I4, Nothing, O3]) =
+            //  ZLayer.makeSome[I1&I2&I4, O1&O2&O3&O4](a, b)
+
+            //def test2[O1, O2, O3, O4 R1](a: ZLayer[R1 & Int, Nothing, O1 & O2], b: ZLayer[Int, Nothing, O3 & O4]) =
+            //  ZLayer.makeSome[Int, O1 & O2](a, b)
+            assertTrue(true)
           }
         )
       )

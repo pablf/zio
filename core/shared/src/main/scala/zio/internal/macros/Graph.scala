@@ -124,15 +124,16 @@ final case class Graph[Key, A](
         _   <- assertNonCircularDependency(node, seen, out)
         result <- neededKeys.get(input) match {
                     case None    => Left(::(GraphError.missingTransitiveDependency(node, input), Nil))
-                    case Some(1) => buildNode(out, seen + out)
+                    case Some(1) => buildNode(out, seen + out).map(tree => (tree, false))
                     case Some(n) => {
                       dependencies = input :: dependencies
-                      Right(LayerTree.empty)
+                      Right((LayerTree.succeed(environment(input).value), true))
                     }
                   }
       } yield result
-    }.map {
-      _.distinct.combineHorizontally >>> LayerTree.succeed(node.value)
+    }.map { deps
+      if (deps.all(_._2)) LayerTree.succeed(node.value)
+      else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
     }
 
   private def assertNonCircularDependency(
