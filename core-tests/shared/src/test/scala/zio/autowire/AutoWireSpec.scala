@@ -254,17 +254,17 @@ object AutoWireSpec extends ZIOBaseSpec {
 
             val test4 = typeCheck {
               """def test4[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
-              ZLayer.makeSome[I1, O1](a, b)""""
+              ZLayer.makeSome[I1, O1](a, b)"""
             }
 
             val test5 = typeCheck {
               """def test5[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
-              ZLayer.makeSome[I1, O2](a, b)""""
+              ZLayer.makeSome[I1, O2](a, b)"""
             }
 
             val test6 = typeCheck {
               """def test6[I1, O1](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, Int]) =
-              ZLayer.makeSome[I1, O1 & Int](a, b)""""
+              ZLayer.makeSome[I1, O1 & Int](a, b)"""
             }
 
             assertZIO(test1)(isRight(anything)) &&
@@ -283,21 +283,21 @@ object AutoWireSpec extends ZIOBaseSpec {
             }
 
             val test2 = typeCheck {
-              """def test2[I1, I2, I3, I4, O1, O2](
-              a: ZLayer[I1 & I2, Nothing, O1 & O2],
-              b: ZLayer[I3 & I4, Nothing, Int]
+              """def test2[I1, I3, O1, O2](
+              a: ZLayer[I1 & Double, Nothing, O1 & O2],
+              b: ZLayer[I3 & Float, Nothing, Int]
             ) =
-              ZLayer.makeSome[I1 & I2 & I3 & I4, O1 & O2 & Int](a, b)"""
+              ZLayer.makeSome[I1 & Double & I3 & Float, O1 & O2 & Int](a, b)"""
             }
 
             val test3 = typeCheck {
-              """def test3[I1, I2, I4, O1, O2](a: ZLayer[I1 & I2, Nothing, O1 & O2], b: ZLayer[I1 & I4, Nothing, Int]) =
-              ZLayer.makeSome[I1 & I2 & I4, O1 & O2 & Int ](a, b)"""
+              """def test3[I1, I4, O1, O2](a: ZLayer[I1 & Double, Nothing, O1 & O2], b: ZLayer[I1 & Float, Nothing, Int]) =
+              ZLayer.makeSome[I1 & Double & Float, O1 & O2 & Int ](a, b)"""
             }
 
             val test4 = typeCheck {
-              """def test4[I1,I2,I4,O1,O2](a: ZLayer[I1&I2, Nothing, O1&O2], b: ZLayer[O1&I4, Nothing, Int]) =
-              ZLayer.makeSome[I1&I2&I4, O1&O2&Int](a, b)"""
+              """def test4[I1,O1,O2](a: ZLayer[I1&Double, Nothing, O1&O2], b: ZLayer[O1&Float, Nothing, Int]) =
+              ZLayer.makeSome[I1&Double&Float, O1&O2&Int](a, b)"""
             }
 
             assertZIO(test1)(isRight(anything)) &&
