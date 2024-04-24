@@ -222,12 +222,12 @@ object AutoWireSpec extends ZIOBaseSpec {
             assertZIO(provided)(equalTo(128))
           },
           test("makeSome 1 layer") {
-            val test1 = typecheck {
+            val test1 = typeCheck {
               """def test1[A, B](a: ZLayer[A, Nothing, B]) =
               ZLayer.makeSome[A, B](a)"""
             }
 
-            val test2 = typecheck {
+            val test2 = typeCheck {
               """def test2[A](a: ZLayer[A, Nothing, Int]) =
               ZLayer.makeSome[A, A & Int](a)"""
             }
@@ -237,32 +237,32 @@ object AutoWireSpec extends ZIOBaseSpec {
           },
           test("makeSome 2 simple layers") {
 
-            val test1 = typecheck {
+            val test1 = typeCheck {
               """def test1[I1, O1, I2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I2, Nothing, Int]) =
               ZLayer.makeSome[I1 & I2, O1 & Int](a, b)"""
             }
 
-            val test2 = typecheck {
+            val test2 = typeCheck {
               """def test2[I1, O1](a: ZLayer[I1, Nothing, O1], b: ZLayer[O1, Nothing, Int]) =
               ZLayer.makeSome[I1, O1 & Int](a, b)"""
             }
 
-            val test3 = typecheck {
+            val test3 = typeCheck {
               """def test4[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[O1, Nothing, O2]) =
               ZLayer.makeSome[I1, O2](a, b)"""
             }
 
-            val test4 = typecheck {
+            val test4 = typeCheck {
               """def test4[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
               ZLayer.makeSome[I1, O1](a, b)""""
             }
 
-            val test5 = typecheck {
+            val test5 = typeCheck {
               """def test5[I1, O1, O2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, O2]) =
               ZLayer.makeSome[I1, O2](a, b)""""
             }
 
-            val test6 = typecheck {
+            val test6 = typeCheck {
               """def test6[I1, O1](a: ZLayer[I1, Nothing, O1], b: ZLayer[I1, Nothing, Int]) =
               ZLayer.makeSome[I1, O1 & Int](a, b)""""
             }
@@ -277,12 +277,12 @@ object AutoWireSpec extends ZIOBaseSpec {
           },
           test("makeSome 2 complex layers") {
 
-            val test1 = typecheck {
+            val test1 = typeCheck {
               """def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]) =
               ZLayer.makeSome[Int, R](a, b)"""
             }
 
-            val test2 = typecheck {
+            val test2 = typeCheck {
               """def test2[I1, I2, I3, I4, O1, O2](
               a: ZLayer[I1 & I2, Nothing, O1 & O2],
               b: ZLayer[I3 & I4, Nothing, Int]
@@ -290,12 +290,12 @@ object AutoWireSpec extends ZIOBaseSpec {
               ZLayer.makeSome[I1 & I2 & I3 & I4, O1 & O2 & Int](a, b)"""
             }
 
-            val test3 = typecheck {
+            val test3 = typeCheck {
               """def test3[I1, I2, I4, O1, O2](a: ZLayer[I1 & I2, Nothing, O1 & O2], b: ZLayer[I1 & I4, Nothing, Int]) =
               ZLayer.makeSome[I1 & I2 & I4, O1 & O2 & Int ](a, b)"""
             }
 
-            val test4 = typecheck {
+            val test4 = typeCheck {
               """def test4[I1,I2,I4,O1,O2](a: ZLayer[I1&I2, Nothing, O1&O2], b: ZLayer[O1&I4, Nothing, Int]) =
               ZLayer.makeSome[I1&I2&I4, O1&O2&Int](a, b)"""
             }
