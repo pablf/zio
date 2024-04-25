@@ -15,7 +15,7 @@ object LayerMacros {
   def constructLayer[R0: Type, R: Type, E: Type](layers: Expr[Seq[ZLayer[_,E,_]]])(using Quotes): Expr[ZLayer[R0,E,R]] = 
     layers match {
       case Varargs(layers) =>
-          throw new Throwable(LayerMacroUtils.constructLayer[R0, R, E](layers, ProvideMethod.Provide).show)
+          LayerMacroUtils.constructLayer[R0, R, E](layers, ProvideMethod.Provide)
       }
 
 

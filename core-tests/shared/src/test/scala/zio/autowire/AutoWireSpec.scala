@@ -257,6 +257,26 @@ object AutoWireSpec extends ZIOBaseSpec {
             assertZIO(test3)(isRight(anything))
 
           },
+          test("graph"){
+            import zio.internal._
+            def mkGraph(layers: Node[String, String], in: List[String], out: List[String]): String = {
+              val eq: (String, String) => Boolean = {_ == _}
+              val env: String => Node[String, String] = {k => Node(List(k), List(k), s"env[$k]")}
+              val deps = in.map(env)
+              val g = Graph[String, String](layers ++ deps, eq, env)
+              val res = g.buildNodes(out, Nil)
+              res.getOrElse(LayerTree.empty).fold("empty", x => x, (a, b) => s"($a ++ $b)", (a, b) => s"($a >>> $b)")
+            }
+
+            val l1 = List(
+              Node(List("R1", "Int"), List("R"), "a"),
+              Node(List("Int"), List("R1"), "b"),
+            )
+            val in1 = "Int" :: Nil
+            val out1 = "R" :: Nil
+
+            assertTrue(mkGraph(l1, in1, out1) == "(env[Int] >>> ((a ++ env[Int]) >>> b))")
+          },
           test("makeSome 2 complex layers") {
 
             val test1 = typeCheck {
