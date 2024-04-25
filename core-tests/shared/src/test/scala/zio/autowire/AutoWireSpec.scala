@@ -259,7 +259,7 @@ object AutoWireSpec extends ZIOBaseSpec {
           },
           test("graph"){
             import zio.internal.macros._
-            def mkGraph(layers: Node[String, String], in: List[String], out: List[String]): String = {
+            def mkGraph(layers: List[Node[String, String]], in: List[String], out: List[String]): String = {
               val eq: (String, String) => Boolean = {_ == _}
               val env: String => Node[String, String] = {k => Node(List(k), List(k), s"env[$k]")}
               val deps = in.map(env)
