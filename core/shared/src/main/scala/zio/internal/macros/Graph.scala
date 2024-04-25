@@ -149,8 +149,8 @@ final case class Graph[Key, A](
   private def forEach[B, C](
     list: List[B]
   )(f: B => Either[::[GraphError[Key, A]], C]): Either[::[GraphError[Key, A]], List[C]] =
-    list.foldLeft[Either[::[GraphError[Key, A]], List[C]]](Right(List.empty)) { (a, b) =>
-      (f(b), a) match {
+    list.foldRight[Either[::[GraphError[Key, A]], List[C]]](Right(List.empty)) { (a, b) =>
+      (f(a), b) match {
         case (Left(::(e, es)), Left(e1s)) => Left(::(e, es ++ e1s))
         case (Left(es), _)                => Left(es)
         case (_, Left(es))                => Left(es)
