@@ -265,7 +265,10 @@ object AutoWireSpec extends ZIOBaseSpec {
               val deps = in.map(env)
               val g = Graph[String, String](layers ++ deps, eq, env)
               val res = g.buildNodes(out, Nil)
-              res.getOrElse(LayerTree.empty).fold("empty", x => x, (a, b) => s"($a ++ $b)", (a, b) => s"($a >>> $b)")
+              res match {
+                case Right(tree) => tree.fold("empty", x => x, (a, b) => s"($a ++ $b)", (a, b) => s"($a >>> $b)")
+                case Left(e) => e.toString
+              }
             }
 
             val l1 = List(
