@@ -279,7 +279,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             val in1 = "Int" :: Nil
             val out1 = "R" :: Nil
 
-            assertTrue(mkGraph(l1, in1, out1) == "(env[Int] >>> ((a ++ env[Int]) >>> b))")
+            assertTrue(mkGraph(l1, in1, out1) == "(env[Int] >>> ((b ++ env[Int]) >>> a))")
           },
           test("makeSome 2 complex layers") {
 
