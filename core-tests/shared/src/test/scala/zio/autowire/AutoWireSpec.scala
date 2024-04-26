@@ -296,6 +296,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             assertZIO(program)(equalTo(9.toLong))
           },
           test("checker 2"){
+            
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): String =
               ZLayer.show[Int, R](a, b)
 
