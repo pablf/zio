@@ -276,7 +276,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             val t4 = test4 _
 
             assertTrue(dummy(t1,t2,t3,t4))
-          }
+          },
           test("makeSome complex layer and providing") {
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): ZLayer[Int, Nothing, R] =
               ZLayer.makeSome[Int, R](a, b)
