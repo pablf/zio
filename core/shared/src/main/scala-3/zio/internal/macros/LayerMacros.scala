@@ -18,13 +18,6 @@ object LayerMacros {
           LayerMacroUtils.constructLayer[R0, R, E](layers, ProvideMethod.Provide)
       }
 
-  def getString[R0: Type, R: Type, E: Type](layers: Expr[Seq[ZLayer[_,E,_]]])(using Quotes): Expr[String] = 
-    layers match {
-      case Varargs(layers) =>
-          Expr(LayerMacroUtils.constructLayer[R0, R, E](layers, ProvideMethod.Provide).show)
-      }
-
-
   def provideImpl[R0: Type, R: Type, E: Type, A: Type](zio: Expr[ZIO[R,E,A]], layer: Expr[Seq[ZLayer[_,E,_]]])(using Quotes): Expr[ZIO[R0,E,A]] = {
     val layerExpr = constructLayer[R0, R, E](layer)
     '{$zio.provideLayer($layerExpr)}
