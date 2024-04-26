@@ -281,6 +281,17 @@ object AutoWireSpec extends ZIOBaseSpec {
 
             assertTrue(mkGraph(l1, in1, out1) == "(env[Int] >>> ((b ++ env[Int]) >>> a))")
           },
+          test("checker") {
+            def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): String =
+              ZLayer.show[Int, Nothing, R](a, b)
+
+            val la = (ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
+                (str.length + double.toInt).toLong
+              }
+            val lb = ZIO.service[Int].map(n => n.toString)
+
+            assertTrue(test1(la, lb))
+          },
           test("makeSome 2 complex layers") {
 
             val test1 = typeCheck {

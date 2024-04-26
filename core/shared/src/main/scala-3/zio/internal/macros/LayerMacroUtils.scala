@@ -61,7 +61,7 @@ private [zio] object LayerMacroUtils {
         case '{$lhs: ZLayer[i, e, o]} =>
           rhs match {
             case '{$rhs: ZLayer[i2, e2, o2]} =>
-              '{$rhs.++($lhs)}
+              '{$lhs.++($rhs)}
           }
       }
 
