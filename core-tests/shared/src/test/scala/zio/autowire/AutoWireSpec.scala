@@ -290,6 +290,7 @@ object AutoWireSpec extends ZIOBaseSpec {
               }
             val lb = ZIO.service[Int].map(n => n.toString)
 
+            
             assertTrue(test1(la, lb))
           },
           test("makeSome 2 complex layers") {
