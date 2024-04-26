@@ -15,7 +15,7 @@ final class WireSomePartiallyApplied[R0, R](val dummy: Boolean = true) extends A
 
 trait ZLayerCompanionVersionSpecific {
 
-  inline def show[R](inline layer: ZLayer[_, E, _]*): String =
+  inline def show[R0, E, R](inline layer: ZLayer[_, E, _]*): String =
     ${LayerMacros.getString[R0, R, E]('layer)}
 
   /**
