@@ -283,7 +283,7 @@ object AutoWireSpec extends ZIOBaseSpec {
           },
           test("checker") {
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): ZLayer[Int, Nothing, R] =
-              ZLayer.makeSome[Int, Nothing, R](a, b)
+              ZLayer.makeSome[Int, R](a, b)
 
             val la = ZLayer{(ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
                 (str.length + int).toLong
@@ -296,9 +296,9 @@ object AutoWireSpec extends ZIOBaseSpec {
             assertZIO(program)(equalTo(9.toLong))
           },
           test("checker 2"){
-            
+
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): String =
-              ZLayer.show[Int, R](a, b)
+              ZLayer.show[Int, Nothing, R](a, b)
 
             val la = ZLayer{(ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
                 (str.length + int).toLong
