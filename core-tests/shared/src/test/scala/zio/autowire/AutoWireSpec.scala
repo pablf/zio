@@ -285,12 +285,12 @@ object AutoWireSpec extends ZIOBaseSpec {
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): String =
               ZLayer.show[Int, Nothing, R](a, b)
 
-            val la = (ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
-                (str.length + double.toInt).toLong
-              }
-            val lb = ZIO.service[Int].map(n => n.toString)
+            val la = ZLayer{(ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
+                (str.length + int).toLong
+              }}
+            val lb = ZLayer{ZIO.service[Int].map(n => n.toString)}
 
-            
+
             assertTrue(test1(la, lb))
           },
           test("makeSome 2 complex layers") {
