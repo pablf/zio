@@ -14,17 +14,15 @@ final case class Graph[Key, A](
   private var neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key] = Nil
+  private var envDependencies: List[Key] = Nil
   
 
   def buildNodes(outputs: List[Key], nodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- neededKeys((outputs ++ nodes.flatMap(_.inputs)).distinct)
     sideEffects <- forEach(nodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
-    finalDeps = constructDeps(dependencies.distinct)
-    leftTree    <- buildComplete(finalDeps)
+    leftTree    <- buildComplete(constructDeps())
   } yield leftTree >>> (rightTree ++ sideEffects)
-
-  private def constructDeps(deps: List[Key]): List[Key] = ???
 
 
   private def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
@@ -33,9 +31,14 @@ final case class Graph[Key, A](
         _         <- Right(restartKeys())
         _         <- neededKeys(outputs)
         rightTree <- build(outputs)
-        leftTree  <- buildComplete(dependencies.distinct)
+        leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
+
+  private def constructDeps(): List[Key] = {
+    if (dependencies.isEmpty) dependencies
+    else dependencies.distinct ++ envDependencies.distinct
+  }
 
   /**
    * Restarts variables for next iteration of buildComplete
@@ -64,7 +67,7 @@ final case class Graph[Key, A](
                   case None =>
                     getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
                 }
-        _ <- Right(addKey(output), node.isEnv)
+        _ <- Right(addKey(output, node.isEnv))
         _ <- parent match {
                case Some(p) => assertNonCircularDependency(p, seen, node)
                case None    => Right(())
@@ -89,6 +92,10 @@ final case class Graph[Key, A](
     forEach(outputs) { output =>
       neededKeys.get(output) match {
         case None => Right(LayerTree.empty)
+        case Some(-1) => {
+          envDependencies = output :: envDependencies
+          Right(LayerTree.succeed(environment(output).value))
+        }
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
             .flatMap(node => buildNode(node, Set(node)))
@@ -103,7 +110,11 @@ final case class Graph[Key, A](
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(node.inputs) { output =>
       neededKeys.get(output) match {
-        case None => Right(LayerTree.empty)
+        case None => Right((LayerTree.empty, true))
+        case Some(-1) =>  {
+          envDependencies = output :: envDependencies
+          Right((LayerTree.succeed(environment(output).value), true))
+        }
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
             .flatMap(node => buildNode(node, Set(node)).map(tree => (tree, false)))
@@ -119,7 +130,7 @@ final case class Graph[Key, A](
     }
 
   def map[B](f: A => B): Graph[Key, B] =
-    Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f))
+    Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f), envKeys)
 
   private def getNodeWithOutput[E](output: Key, error: E): Either[::[E], Node[Key, A]] =
     nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
@@ -134,6 +145,10 @@ final case class Graph[Key, A](
         _   <- assertNonCircularDependency(node, seen, out)
         result <- neededKeys.get(input) match {
                     case None    => Left(::(GraphError.missingTransitiveDependency(node, input), Nil))
+                    case Some(-1) => {
+                      envDependencies = input :: envDependencies
+                      Right((LayerTree.succeed(environment(input).value), true))
+                    }
                     case Some(1) => buildNode(out, seen + out).map(tree => (tree, false))
                     case Some(n) => {
                       dependencies = input :: dependencies
