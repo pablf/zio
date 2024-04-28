@@ -118,7 +118,7 @@ private[zio] trait LayerMacroUtils {
     // ZIO[in, _, out]
     val in  = typeArgs.head
     val out = typeArgs(2)
-    Node(getRequirements(in), getRequirements(out), layer)
+    Node(getRequirements(in), getRequirements(out), layer, false)
   }
 
   def getRequirements[T: c.WeakTypeTag]: List[c.Type] =

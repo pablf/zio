@@ -96,7 +96,7 @@ private [zio] object LayerMacroUtils {
       case '{ $layer: ZLayer[in, e, out] } =>
         val inputs = getRequirements[in]
         val outputs = getRequirements[out]
-        Node(inputs, outputs, layer)
+        Node(inputs, outputs, layer, false)
     }
   }
 

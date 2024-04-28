@@ -5,20 +5,27 @@ import zio.internal.macros.LayerTree._
 final case class Graph[Key, A](
   nodes: List[Node[Key, A]],
   keyEquals: (Key, Key) => Boolean,
-  environment: Key => Node[Key, A]
+  environment: Key => Node[Key, A],
+  envKeys: List[Key],
 ) {
 
   // Map assigning to each type the times that it must be built
+  // -1 designs a `Key` from the environment
   private var neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key] = Nil
+  
 
   def buildNodes(outputs: List[Key], nodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- neededKeys((outputs ++ nodes.flatMap(_.inputs)).distinct)
     sideEffects <- forEach(nodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
-    leftTree    <- buildComplete(dependencies.distinct)
+    finalDeps = constructDeps(dependencies.distinct)
+    leftTree    <- buildComplete(finalDeps)
   } yield leftTree >>> (rightTree ++ sideEffects)
+
+  private def constructDeps(deps: List[Key]): List[Key] = ???
+
 
   private def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     if (!outputs.isEmpty)
@@ -57,19 +64,20 @@ final case class Graph[Key, A](
                   case None =>
                     getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
                 }
-        _ <- Right(addKey(output))
+        _ <- Right(addKey(output), node.isEnv)
         _ <- parent match {
                case Some(p) => assertNonCircularDependency(p, seen, node)
                case None    => Right(())
              }
-        _ <- neededKeys(node.inputs, seen + node, Some(node))
+        _ <- neededKeys(node.getInputs(), seen + node, Some(node))
       } yield ()
     }.map(_ => ())
 
-  private def addKey(key: Key): Unit =
+  private def addKey(key: Key, asEnv: Boolean): Unit =
     neededKeys.get(key) match {
+      case Some(-1) => ()
       case Some(n) => neededKeys = neededKeys + (key -> (n + 1))
-      case None    => neededKeys = neededKeys + (key -> 1)
+      case None    => if(asEnv) neededKeys = neededKeys + (key -> (-1)) else neededKeys = neededKeys + (key -> 1)
     }
 
   /**
@@ -98,15 +106,17 @@ final case class Graph[Key, A](
         case None => Right(LayerTree.empty)
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
-            .flatMap(node => buildNode(node, Set(node)))
+            .flatMap(node => buildNode(node, Set(node)).map(tree => (tree, false)))
         case Some(n) => {
           dependencies = output :: dependencies
-          Right(LayerTree.empty)
+          Right((LayerTree.succeed(environment(output).value), true))
         }
       }
     }
-      .map(_.distinct.combineHorizontally)
-      .map(_ >>> LayerTree.succeed(node.value))
+    .map { deps =>
+      if (deps.forall(_._2)) LayerTree.succeed(node.value)
+      else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
+    }
 
   def map[B](f: A => B): Graph[Key, B] =
     Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f))
