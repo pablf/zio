@@ -64,8 +64,8 @@ private[zio] trait LayerMacroUtils {
       foldTree = buildFinalTree,
       method = provideMethod,
       exprToNode = getNode,
-      typeToNode = tpe => Node(Nil, List(tpe), c.Expr[ZLayer[_, E, _]](q"_root_.zio.ZLayer.environment[$tpe]"), true),
-      andTypes = tpes => tpes.reduce { (t1, t2) => t"${t._1}&${t._2}" },
+      typeToNode = tpe => Node(Nil, List(tpe), c.Expr[ZLayer[_, E, _]](q"_root_.zio.ZLayer.environment[$tpe]")),
+      andTypes = tpes => tpes.reduce { (t1, t2) => t"${t1}&${t2}" },
       showExpr = expr => CleanCodePrinter.show(c)(expr.tree),
       showType = _.toString,
       reportWarn = c.warning(c.enclosingPosition, _),
@@ -119,7 +119,7 @@ private[zio] trait LayerMacroUtils {
     // ZIO[in, _, out]
     val in  = typeArgs.head
     val out = typeArgs(2)
-    Node(getRequirements(in), getRequirements(out), layer, false)
+    Node(getRequirements(in), getRequirements(out), layer)
   }
 
   def getRequirements[T: c.WeakTypeTag]: List[c.Type] =

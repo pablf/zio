@@ -78,7 +78,7 @@ final case class Graph[Key, A](
                case Some(p) => assertNonCircularDependency(p, seen, node)
                case None    => Right(())
              }
-        _ <- neededKeys(node.getInputs(), seen + node, Some(node))
+        _ <- neededKeys(node.inputs, seen + node, Some(node))
       } yield ()
       }
     }.map(_ => ())

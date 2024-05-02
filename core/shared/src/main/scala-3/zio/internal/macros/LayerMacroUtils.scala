@@ -41,7 +41,7 @@ private [zio] object LayerMacroUtils {
       foldTree = buildFinalTree,
       method = provideMethod,
       exprToNode = getNode,
-      typeToNode = tpe => Node(Nil, List(tpe), tpe.asType match { case '[t] => '{ZLayer.environment[t] } }, true),
+      typeToNode = tpe => Node(Nil, List(tpe), tpe.asType match { case '[t] => '{ZLayer.environment[t] } }),
       andTypes = tpes => tpes.reduce { (t1, t2) => AndType(t1, t2) },
       showExpr = expr => scala.util.Try(expr.asTerm.pos.sourceCode).toOption.flatten.getOrElse(expr.show),
       showType = _.show,
@@ -97,7 +97,7 @@ private [zio] object LayerMacroUtils {
       case '{ $layer: ZLayer[in, e, out] } =>
         val inputs = getRequirements[in]
         val outputs = getRequirements[out]
-        Node(inputs, outputs, layer, false)
+        Node(inputs, outputs, layer)
     }
   }
 
