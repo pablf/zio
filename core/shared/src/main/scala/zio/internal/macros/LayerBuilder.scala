@@ -57,7 +57,6 @@ final case class LayerBuilder[Type, Expr](
   method: ProvideMethod,
   exprToNode: Expr => Node[Type, Expr],
   typeToNode: Type => Node[Type, Expr],
-  andTypes: List[Type] => Type,
   showExpr: Expr => String,
   showType: Type => String,
   reportWarn: String => Unit,

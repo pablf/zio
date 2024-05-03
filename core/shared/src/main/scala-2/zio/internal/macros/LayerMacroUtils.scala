@@ -65,7 +65,6 @@ private[zio] trait LayerMacroUtils {
       method = provideMethod,
       exprToNode = getNode,
       typeToNode = tpe => Node(Nil, List(tpe), c.Expr[ZLayer[_, E, _]](q"_root_.zio.ZLayer.environment[$tpe]")),
-      andTypes = tpes => tpes.reduce { (t1, t2) => tq"${t1}&${t2}" },
       showExpr = expr => CleanCodePrinter.show(c)(expr.tree),
       showType = _.toString,
       reportWarn = c.warning(c.enclosingPosition, _),
