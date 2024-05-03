@@ -89,7 +89,7 @@ final case class LayerBuilder[Type, Expr](
      * fail with one or more GraphErrors.
      */
     val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] = {
-      val graph                         = Graph(providedLayerNodes, typeEquals, typeToNode, remainder, andTypes)
+      val graph                         = Graph(providedLayerNodes, typeEquals, typeToNode, remainder)
 
       graph.buildNodes(target, sideEffectNodes)
     }
