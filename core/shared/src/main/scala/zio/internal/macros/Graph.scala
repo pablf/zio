@@ -42,7 +42,7 @@ final case class Graph[Key, A](
     else {println(dependencies); distinctKeys(dependencies) ++ distinctKeys(envDependencies)}
   }
 
-  
+
   /**
    * Restarts variables for next iteration of buildComplete
    */
@@ -161,7 +161,7 @@ final case class Graph[Key, A](
     Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f), envKeys)
 
   private def getNodeWithOutput[E](output: Key, error: E): Either[::[E], Node[Key, A]] =
-    if (isEnv(output)) Right(environment(output))
+    if (isEnv(output)) throw new Throwable("this should not happen")//Right(environment(output))
     else nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
 
   private def isEnv(key: Key): Boolean =
