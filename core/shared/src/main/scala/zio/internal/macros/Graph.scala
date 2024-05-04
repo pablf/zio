@@ -17,9 +17,9 @@ final case class Graph[Key, A](
   private var envDependencies: List[Key] = Nil
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
-    _ <- Right(println(s"should be true: ${if (envKeys.isEmpty) true else isEnv(envKeys.head)}"))
+    _ <- Right(println(s"should be true: ${envKeys.headOption.map(isEnv(_))}"))
     //_ <- Right(println(s"called with ${outputs.toString} and ${nodes.toString} and ${sideEffectNodes.toString} "))
-    _           <- neededKeys((outputs ++ sideEffectNodes.flatMap(_.inputs)).distinct)
+    _           <- neededKeys(distinctKeys(outputs ++ sideEffectNodes.flatMap(_.inputs)))
     _ <- Right(println(neededKeys.toString))
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
@@ -39,7 +39,7 @@ final case class Graph[Key, A](
 
   private def constructDeps(): List[Key] = {
     if (dependencies.isEmpty) {println("emptyDeps"); dependencies}
-    else {println(dependencies); dependencies.distinct ++ envDependencies.distinct}
+    else {println(dependencies); distinctKeys(dependencies) ++ distinctKeys(envDependencies)}
   }
 
   /**
@@ -48,6 +48,14 @@ final case class Graph[Key, A](
   private def restartKeys(): Unit = {
     neededKeys = Map.empty
     dependencies = Nil
+  }
+
+  private distinctKeys(keys: List[Key]): List[Key] = {
+    var distinct = List.empty
+    for (k <- keys) {
+      if (!distinct.exists(k2 => keyEquals(k, k2))) distinct = k :: distinct
+    }
+    distinct.reverse
   }
 
   /**
