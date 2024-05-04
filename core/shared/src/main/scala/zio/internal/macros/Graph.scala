@@ -20,6 +20,7 @@ final case class Graph[Key, A](
     _ <- Right(println(s"should be true: ${if (envKeys.isEmpty) true else isEnv(envKeys.head)}"))
     //_ <- Right(println(s"called with ${outputs.toString} and ${nodes.toString} and ${sideEffectNodes.toString} "))
     _           <- neededKeys((outputs ++ sideEffectNodes.flatMap(_.inputs)).distinct)
+    _ <- Right(println(neededKeys.toString))
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
     leftTree    <- buildComplete(constructDeps())
@@ -123,7 +124,7 @@ final case class Graph[Key, A](
       .map(_.distinct.combineHorizontally)
 
 
-      
+
 
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(node.inputs) { output =>
