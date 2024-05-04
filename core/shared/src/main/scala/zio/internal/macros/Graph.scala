@@ -42,6 +42,7 @@ final case class Graph[Key, A](
     else {println(dependencies); distinctKeys(dependencies) ++ distinctKeys(envDependencies)}
   }
 
+  
   /**
    * Restarts variables for next iteration of buildComplete
    */
