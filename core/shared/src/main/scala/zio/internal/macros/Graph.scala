@@ -132,6 +132,7 @@ final case class Graph[Key, A](
     }
     .map {layers =>
       println(s"lengths: ${layers.length}, ${layers.distinct.length}, ${layers.distinctBy(_.toString).length}")
+      layers
     }
     .map(_.distinctBy(_.toString).combineHorizontally)
 
