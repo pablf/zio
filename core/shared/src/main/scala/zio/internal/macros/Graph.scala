@@ -17,7 +17,8 @@ final case class Graph[Key, A](
   private var envDependencies: List[Key] = Nil
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
-    _ <- Right(println(s"called with ${outputs.toString} and ${nodes.toString} and ${sideEffectNodes.toString} "))
+    _ <- Right(println(s"should be true: ${if (envKeys.isEmpty) true else isEnv(envKeys.head)}"))
+    //_ <- Right(println(s"called with ${outputs.toString} and ${nodes.toString} and ${sideEffectNodes.toString} "))
     _           <- neededKeys((outputs ++ sideEffectNodes.flatMap(_.inputs)).distinct)
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
