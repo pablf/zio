@@ -130,7 +130,7 @@ final case class Graph[Key, A](
         }
       }
     }
-      .map(_.distinct.combineHorizontally)
+      .map(_.distinctBy(_.toString).combineHorizontally)
 
 
 
@@ -154,7 +154,7 @@ final case class Graph[Key, A](
     }
     .map { deps =>
       if (deps.forall(_._2)) LayerTree.succeed(node.value)
-      else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
+      else deps.map(_._1).distinctBy(_.toString).combineHorizontally >>> LayerTree.succeed(node.value)
     }
 
   def map[B](f: A => B): Graph[Key, B] =
@@ -190,7 +190,7 @@ final case class Graph[Key, A](
       } yield result
     }.map { deps =>
       if (deps.forall(_._2)) LayerTree.succeed(node.value)
-      else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
+      else deps.map(_._1).distinctBy(_.toString).combineHorizontally >>> LayerTree.succeed(node.value)
     }
 
   private def assertNonCircularDependency(
