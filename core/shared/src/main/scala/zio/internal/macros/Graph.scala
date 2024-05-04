@@ -51,7 +51,7 @@ final case class Graph[Key, A](
   }
 
   private def distinctKeys(keys: List[Key]): List[Key] = {
-    var distinct = List.empty
+    var distinct:: List[Key] = List.empty
     for (k <- keys) {
       if (!distinct.exists(k2 => keyEquals(k, k2))) distinct = k :: distinct
     }
