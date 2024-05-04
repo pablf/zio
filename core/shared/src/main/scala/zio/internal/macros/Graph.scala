@@ -60,7 +60,7 @@ final case class Graph[Key, A](
 
     forEach(outputs) { output =>
       if (created.contains(output)) Right(())
-      else if(envKeys.contains(output)) Right(addEnv(output))
+      else if(isEnv(output)) Right(addEnv(output))
       else {
         for {
         node <- parent match {
@@ -104,7 +104,7 @@ final case class Graph[Key, A](
    */
   private def build(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] = 
     forEach(outputs) { output =>
-      if(envKeys.contains(output)) {
+      if(isEnv(output)) {
         envDependencies = output :: envDependencies
         Right(LayerTree.succeed(environment(output).value))
       }
@@ -127,7 +127,7 @@ final case class Graph[Key, A](
 
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(node.inputs) { output =>
-      if(envKeys.contains(output)) {
+      if(isEnv(output)) {
         envDependencies = output :: envDependencies
         Right((LayerTree.succeed(environment(output).value), true))
       }
@@ -151,8 +151,11 @@ final case class Graph[Key, A](
     Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f), envKeys)
 
   private def getNodeWithOutput[E](output: Key, error: E): Either[::[E], Node[Key, A]] =
-    if (envKeys.contains(output)) Right(environment(output))
+    if (isEnv(output)) Right(environment(output))
     else nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
+
+  private def isEnv(key: Key): Boolean =
+    envKeys.exists(env => keyEquals(env, key))
 
   private def buildNode(
     node: Node[Key, A],
@@ -163,7 +166,7 @@ final case class Graph[Key, A](
         out <- getNodeWithOutput(input, error = GraphError.missingTransitiveDependency(node, input))
         _   <- assertNonCircularDependency(node, seen, out)
         result <- 
-          if (envKeys.contains(input)) {
+          if (isEnv(input)) {
             envDependencies = input :: envDependencies
             Right((LayerTree.succeed(environment(input).value), true))
           } else neededKeys.get(input) match {
