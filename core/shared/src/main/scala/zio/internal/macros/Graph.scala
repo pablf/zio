@@ -123,8 +123,7 @@ final case class Graph[Key, A](
       .map(_.distinct.combineHorizontally)
 
 
-    
-    
+      
 
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(node.inputs) { output =>
