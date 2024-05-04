@@ -60,7 +60,7 @@ final case class Graph[Key, A](
 
     forEach(outputs) { output =>
       if (created.contains(output)) Right(())
-      else if(envKeys.contains(output)) Right(())
+      else if(envKeys.contains(output)) Right(addEnv(output))
       else {
         for {
         node <- parent match {
@@ -84,11 +84,15 @@ final case class Graph[Key, A](
     }.map(_ => ())
   }
     
-    
+  private def addEnv(key: Key): Unit =
+    neededKeys.get(key) match {
+      case Some(_) => ()
+      case None    => neededKeys = neededKeys + (key -> -1)
+    }
 
   private def addKey(key: Key): Unit =
     neededKeys.get(key) match {
-      case Some(-1) => throw new Throwable("Wrong")
+      case Some(-1) => ()
       case Some(n) => neededKeys = neededKeys + (key -> (n + 1))
       case None    => neededKeys = neededKeys + (key -> 1)
     }
