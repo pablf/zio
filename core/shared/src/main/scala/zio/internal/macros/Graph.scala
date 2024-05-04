@@ -59,7 +59,7 @@ final case class Graph[Key, A](
     var created: List[Key] = Nil
 
     forEach(outputs) { output =>
-      if (created.contains(output)) Right(())
+      if (created.exists(k => keyEquals(output, k))) Right(())
       else if(isEnv(output)) Right(addEnv(output))
       else {
         for {
