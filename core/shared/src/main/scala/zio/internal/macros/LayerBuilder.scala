@@ -88,13 +88,10 @@ final case class LayerBuilder[Type, Expr](
      * fail with one or more GraphErrors.
      */
     val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] = {
-      val nodes: List[Node[Type, Expr]] = providedLayerNodes ++ remainderNodes ++ sideEffectNodes
-      val graph                         = Graph(nodes, typeEquals)
+      val nodes: List[Node[Type, Expr]] = providedLayerNodes
+      val graph                         = Graph(nodes, typeEquals, typeToNode, remainder)
 
-      for {
-        original    <- graph.buildComplete(target)
-        sideEffects <- graph.buildNodes(sideEffectNodes)
-      } yield sideEffects ++ original
+      graph.buildNodes(target, sideEffectNodes)
     }
 
     layerTreeEither match {
