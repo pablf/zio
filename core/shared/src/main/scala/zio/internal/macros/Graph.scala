@@ -16,10 +16,9 @@ final case class Graph[Key, A](
   private var dependencies: List[Key] = Nil
   private var envDependencies: List[Key] = Nil
 
+  private var usedEnvKeys: Set[Key] = Set.empty
 
-  private var usedRemainders: Set[Key] = Set.empty
-
-  def usedRemainders(): Set[A] = usedRemainders.map(environment(_)).map(_.value)
+  def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs))
