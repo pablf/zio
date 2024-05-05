@@ -267,7 +267,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             def test3[I1, I4, O1, O2](a: ZLayer[I1 & Double, Nothing, O1 & O2], b: ZLayer[I1 & Float, Nothing, Int]): ZLayer[I1 & Double & Float, Nothing, O1 & O2 & Int] =
               ZLayer.makeSome[I1 & Double & Float, O1 & O2 & Int ](a, b)
 
-            def test4[I1,O1,O2](a: ZLayer[I1&Double, Nothing, O1&O2], b: ZLayer[O1&Float, Nothing, Int]): ZLayer[I1&Double&Float, Nothing, O1&O2&Int] =
+            def test4[I1,O1,O2](a: ZLayer[I1&Double, Nothing, O1&String], b: ZLayer[O1&Float, Nothing, Int]): ZLayer[I1&Double&Float, Nothing, O1&String&Int] =
               ZLayer.makeSome[I1&Double&Float, O1&O2&Int](a, b)
 
             val t1 = test1 _
