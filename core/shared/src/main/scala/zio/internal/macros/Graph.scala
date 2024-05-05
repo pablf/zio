@@ -102,7 +102,7 @@ final case class Graph[Key, A](
       }
     }
 
-    ()
+    Right(())
   }
     
   private def addEnv(key: Key): Unit =
