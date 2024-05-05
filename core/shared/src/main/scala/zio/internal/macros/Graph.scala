@@ -17,7 +17,7 @@ final case class Graph[Key, A](
   private var envDependencies: List[Key] = Nil
 
 
-  private var usedRemainders: Set[Key] = 
+  private var usedRemainders: Set[Key] = Set.empty
 
   def usedRemainders(): Set[A] = usedRemainders.map(environment(_)).map(_.value)
 
