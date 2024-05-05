@@ -109,7 +109,7 @@ final case class Graph[Key, A](
   }
     
   private def addEnv(key: Key): Unit = {
-    usedRemainders = usedRemainders + key
+    usedEnvKeys = usedEnvKeys + key
     getKey(key) match {
       case Some(_) => ()
       case None    => neededKeys = neededKeys + (key -> -1)
