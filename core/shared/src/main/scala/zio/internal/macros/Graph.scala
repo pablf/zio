@@ -201,22 +201,23 @@ final case class Graph[Key, A](
     seen: Set[Node[Key, A]]
   ): Either[::[GraphError[Key, A]], LayerTree[A]] =
     forEach(node.inputs) { input =>
-      for {
-        out <- getNodeWithOutput(input, error = GraphError.missingTransitiveDependency(node, input))
-        _   <- assertNonCircularDependency(node, seen, out)
-        result <- 
-          if (isEnv(input)) {
+      if (isEnv(input)) {
             envDependencies = input :: envDependencies
             Right((LayerTree.succeed(environment(input).value), true))
-          } else getKey(input) match {
+      } else getKey(input) match {
                     case None    => Left(::(GraphError.missingTransitiveDependency(node, input), Nil))
-                    case Some(1) => buildNode(out, seen + out).map(tree => (tree, false))
+                    case Some(1) => {
+                      for {
+                        out <- getNodeWithOutput(input, error = GraphError.missingTransitiveDependency(node, input))
+                        _   <- assertNonCircularDependency(node, seen, out)
+                        result <- buildNode(out, seen + out).map(tree => (tree, false))
+                      } yield result
+                    }
                     case Some(n) => {
                       dependencies = input :: dependencies
                       Right((LayerTree.succeed(environment(input).value), true))
-                    }
-                  }
-      } yield result
+          }
+        }
     }.map { deps =>
       if (deps.forall(_._2)) LayerTree.succeed(node.value)
       else deps.map(_._1).distinctBy(_.toString).combineHorizontally >>> LayerTree.succeed(node.value)
