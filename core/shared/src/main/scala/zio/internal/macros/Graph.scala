@@ -19,7 +19,7 @@ final case class Graph[Key, A](
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     //_ <- Right(println(s"should be true: ${envKeys.headOption.map(isEnv(_))}"))
     //_ <- Right(println(s"called with ${outputs.toString} and ${nodes.toString} and ${sideEffectNodes.toString} "))
-    _           <- neededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs))
+    _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs))
     //_ <- Right(println(neededKeys.toString))
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
@@ -32,7 +32,7 @@ final case class Graph[Key, A](
     if (!outputs.isEmpty)
       for {
         _         <- Right(restartKeys())
-        _         <- neededKeys(outputs)
+        _         <- mkNeededKeys(outputs)
         rightTree <- build(outputs)
         leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
@@ -63,7 +63,7 @@ final case class Graph[Key, A](
   /**
    * Initializes neededKeys
    */
-  def neededKeys(
+  def mkNeededKeys(
     outputs: List[Key],
     seen: Set[Node[Key, A]] = Set.empty,
     parent: Option[Node[Key, A]] = None
@@ -97,10 +97,12 @@ final case class Graph[Key, A](
                case Some(p) => assertNonCircularDependency(p, seen, node)
                case None    => Right(())
              }
-        _ <- neededKeys(node.inputs, seen + node, Some(node))
+        _ <- mkNeededKeys(node.inputs, seen + node, Some(node))
       } yield ()
       }
     }
+
+    if(outputs.map(neededKeys.get(key)).contains(None)) throw new Throwable(s"should not with $neededKeys")
 
     Right(())
   }
