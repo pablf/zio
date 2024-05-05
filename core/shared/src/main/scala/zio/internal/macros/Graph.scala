@@ -55,7 +55,7 @@ final case class Graph[Key, A](
   private def distinctKeys(keys: List[Key]): List[Key] = {
     var distinct: List[Key] = List.empty
     for (k <- keys) {
-      if (!distinct.exists(k2 => keyEquals(k, k2))) distinct = k :: distinct
+      if (!distinct.exists(k2 => keyEquals(k, k2)||keyEquals(k2, k))) distinct = k :: distinct
     }
     distinct.reverse
   }
@@ -71,7 +71,7 @@ final case class Graph[Key, A](
     var created: List[Key] = Nil
 
     forEach(outputs) { output =>
-      if (created.exists(k => keyEquals(output, k))) {
+      if (created.exists(k => keyEquals(output, k)||keyEquals(k, output))) {
         getKey(output) match {
           case None => println(s"This hppaned with key $output")
           case Some(_) => println(s"key $output is ok")
@@ -113,7 +113,7 @@ final case class Graph[Key, A](
   private def getKey(key: Key): Option[Int] = {
     neededKeys.get(key) match {
       case Some(n) => Some(n)
-      case None => neededKeys.keySet.find(k => keyEquals(key, k)) match {
+      case None => neededKeys.keySet.find(k => keyEquals(k, key)) match {
         case Some(aliasKey) => neededKeys.get(aliasKey)
         case None => None
       }
