@@ -77,6 +77,7 @@ final case class Graph[Key, A](
           case Some(_) => println(s"key $output is ok")
           
         }
+        Right(())
       }
       else if(isEnv(output)) Right(addEnv(output))
       else {
