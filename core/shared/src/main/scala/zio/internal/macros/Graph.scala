@@ -72,7 +72,7 @@ final case class Graph[Key, A](
 
     forEach(outputs) { output =>
       if (created.exists(k => keyEquals(output, k))) {
-        neededKeys.get(output) match {
+        getKey(output) match {
           case None => println(s"This hppaned with key $output")
           case Some(_) => println(s"key $output is ok")
           
@@ -102,22 +102,32 @@ final case class Graph[Key, A](
       }
     }
 
-    outputs.find(o => neededKeys.get(o) == None) match {
+    outputs.find(o => getKey(o) == None) match {
       case Some(err) => throw new Throwable(s"should not with $neededKeys, output: $outputs, none was $err")
       case None => ()
     } 
 
     Right(())
   }
+
+  private getKey(key: Key): Option[Int] = {
+    neededKeys.get(key) match {
+      case Some(n) => Some(n)
+      case None => neededKeys.keySet.find(k => keyEquals(key, k)) match {
+        case Some(aliasKey) => neededKeys.get(aliasKey)
+        case None => None
+      }
+    }
+  }
     
   private def addEnv(key: Key): Unit =
-    neededKeys.get(key) match {
+    getKey(key) match {
       case Some(_) => ()
       case None    => neededKeys = neededKeys + (key -> -1)
     }
 
   private def addKey(key: Key): Unit =
-    neededKeys.get(key) match {
+    getKey(key) match {
       case Some(-1) => ()
       case Some(n) => neededKeys = neededKeys + (key -> (n + 1))
       case None    => neededKeys = neededKeys + (key -> 1)
@@ -134,7 +144,7 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right(LayerTree.succeed(environment(output).value))
       }
-      else neededKeys.get(output) match {
+      else getKey(output) match {
         case None => Right(LayerTree.empty)//throw new Throwable(s"This shouldn't happened with key: $output")//
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
@@ -160,7 +170,7 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right((LayerTree.succeed(environment(output).value), true))
       }
-      else neededKeys.get(output) match {
+      else getKey(output) match {
         case None => throw new Throwable(s"This shouldn't happen 2: $output")//Right((LayerTree.empty, true))
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
@@ -198,7 +208,7 @@ final case class Graph[Key, A](
           if (isEnv(input)) {
             envDependencies = input :: envDependencies
             Right((LayerTree.succeed(environment(input).value), true))
-          } else neededKeys.get(input) match {
+          } else getKey(input) match {
                     case None    => Left(::(GraphError.missingTransitiveDependency(node, input), Nil))
                     case Some(1) => buildNode(out, seen + out).map(tree => (tree, false))
                     case Some(n) => {
