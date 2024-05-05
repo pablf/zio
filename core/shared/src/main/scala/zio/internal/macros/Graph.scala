@@ -17,14 +17,10 @@ final case class Graph[Key, A](
   private var envDependencies: List[Key] = Nil
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
-    //_ <- Right(println(s"should be true: ${envKeys.headOption.map(isEnv(_))}"))
-    //_ <- Right(println(s"called with ${outputs.toString} and ${nodes.toString} and ${sideEffectNodes.toString} "))
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs))
-    //_ <- Right(println(neededKeys.toString))
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs)
     leftTree    <- buildComplete(constructDeps())
-    _ <- Right(println(s"with output $outputs, $sideEffects, $rightTree, $leftTree"))
   } yield leftTree >>> (rightTree ++ sideEffects)
 
 
@@ -39,8 +35,8 @@ final case class Graph[Key, A](
     else Right(LayerTree.empty)
 
   private def constructDeps(): List[Key] = {
-    if (dependencies.isEmpty) {println("emptyDeps"); dependencies}
-    else {println(dependencies); distinctKeys(dependencies) ++ distinctKeys(envDependencies)}
+    if (dependencies.isEmpty) dependencies
+    else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
   }
 
 
@@ -71,14 +67,7 @@ final case class Graph[Key, A](
     var created: List[Key] = Nil
 
     forEach(outputs) { output =>
-      if (created.exists(k => keyEquals(output, k)||keyEquals(k, output))) {
-        getKey(output) match {
-          case None => println(s"This hppaned with key $output")
-          case Some(_) => println(s"key $output is ok")
-          
-        }
-        Right(())
-      }
+      if (created.exists(k => keyEquals(output, k)||keyEquals(k, output))) Right(())
       else if(isEnv(output)) Right(addEnv(output))
       else {
         for {
@@ -101,11 +90,6 @@ final case class Graph[Key, A](
       } yield ()
       }
     }
-
-    outputs.find(o => getKey(o) == None) match {
-      case Some(err) => throw new Throwable(s"should not with $neededKeys, output: $outputs, none was $err")
-      case None => ()
-    } 
 
     Right(())
   }
@@ -145,7 +129,7 @@ final case class Graph[Key, A](
         Right(LayerTree.succeed(environment(output).value))
       }
       else getKey(output) match {
-        case None => Right(LayerTree.empty)//throw new Throwable(s"This shouldn't happened with key: $output")//
+        case None => throw new Throwable(s"This shouldn't happen")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
             .flatMap(node => buildNode(node, Set(node)))
@@ -155,11 +139,7 @@ final case class Graph[Key, A](
         }
       }
     }
-    .map {layers =>
-      println(s"lengths: ${layers.length}, ${layers.distinct.length}, ${layers.distinctBy(_.toString).length}")
-      layers
-    }
-    .map(_.distinctBy(_.toString).combineHorizontally)
+    .map(_.distinct.combineHorizontally)
 
 
 
@@ -171,7 +151,7 @@ final case class Graph[Key, A](
         Right((LayerTree.succeed(environment(output).value), true))
       }
       else getKey(output) match {
-        case None => throw new Throwable(s"This shouldn't happen 2: $output")//Right((LayerTree.empty, true))
+        case None => throw new Throwable(s"This shouldn't happen")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
             .flatMap(node => buildNode(node, Set(node)).map(tree => (tree, false)))
@@ -183,14 +163,14 @@ final case class Graph[Key, A](
     }
     .map { deps =>
       if (deps.forall(_._2)) LayerTree.succeed(node.value)
-      else deps.map(_._1).distinctBy(_.toString).combineHorizontally >>> LayerTree.succeed(node.value)
+      else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
     }
 
   def map[B](f: A => B): Graph[Key, B] =
     Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f), envKeys)
 
   private def getNodeWithOutput[E](output: Key, error: E): Either[::[E], Node[Key, A]] =
-    if (isEnv(output)) throw new Throwable("this should not happen")//Right(environment(output))
+    if (isEnv(output)) throw new Throwable(s"This shouldn't happen")
     else nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
 
   private def isEnv(key: Key): Boolean =
@@ -220,7 +200,7 @@ final case class Graph[Key, A](
         }
     }.map { deps =>
       if (deps.forall(_._2)) LayerTree.succeed(node.value)
-      else deps.map(_._1).distinctBy(_.toString).combineHorizontally >>> LayerTree.succeed(node.value)
+      else deps.map(_._1).distinct.combineHorizontally >>> LayerTree.succeed(node.value)
     }
 
   private def assertNonCircularDependency(
