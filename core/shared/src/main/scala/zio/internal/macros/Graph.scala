@@ -11,7 +11,7 @@ final case class Graph[Key, A](
 
   // Map assigning to each type the times that it must be built
   // -1 designs a `Key` from the environment
-  privatevar neededKeys: Map[Key, Int] = Map.empty
+  private var neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key] = Nil
   private var envDependencies: List[Key] = Nil
