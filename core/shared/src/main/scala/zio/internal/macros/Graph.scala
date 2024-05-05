@@ -71,7 +71,13 @@ final case class Graph[Key, A](
     var created: List[Key] = Nil
 
     forEach(outputs) { output =>
-      if (created.exists(k => keyEquals(output, k))) Right(())
+      if (created.exists(k => keyEquals(output, k))) {
+        neededKeys.get(output) match {
+          case None => println(s"This hppaned with key $output")
+          case Some(_) => println(s"key $output is ok")
+          
+        }
+      }
       else if(isEnv(output)) Right(addEnv(output))
       else {
         for {
@@ -93,7 +99,9 @@ final case class Graph[Key, A](
         _ <- neededKeys(node.inputs, seen + node, Some(node))
       } yield ()
       }
-    }.map(_ => ())
+    }
+
+    ()
   }
     
   private def addEnv(key: Key): Unit =
