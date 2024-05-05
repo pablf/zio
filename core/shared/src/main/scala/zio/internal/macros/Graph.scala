@@ -113,7 +113,7 @@ final case class Graph[Key, A](
   private def getKey(key: Key): Option[Int] = {
     neededKeys.get(key) match {
       case Some(n) => Some(n)
-      case None => neededKeys.keySet.find(k => keyEquals(k, key)) match {
+      case None => neededKeys.keySet.find(k => keyEquals(k, key)||keyEquals(key, k)) match {
         case Some(aliasKey) => neededKeys.get(aliasKey)
         case None => None
       }
