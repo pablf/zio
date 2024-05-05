@@ -102,7 +102,7 @@ final case class Graph[Key, A](
       }
     }
 
-    if(outputs.map(neededKeys.get(key)).contains(None)) throw new Throwable(s"should not with $neededKeys")
+    if(outputs.map(neededKeys.get(_)).contains(None)) throw new Throwable(s"should not with $neededKeys")
 
     Right(())
   }
