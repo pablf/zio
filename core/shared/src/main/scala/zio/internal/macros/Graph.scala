@@ -130,7 +130,7 @@ final case class Graph[Key, A](
         Right(LayerTree.succeed(environment(output).value))
       }
       else neededKeys.get(output) match {
-        case None => throw new Throwable(s"This shouldn't happened with key: $output")//Right(LayerTree.empty)
+        case None => Right(LayerTree.empty)//throw new Throwable(s"This shouldn't happened with key: $output")//
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
             .flatMap(node => buildNode(node, Set(node)))
