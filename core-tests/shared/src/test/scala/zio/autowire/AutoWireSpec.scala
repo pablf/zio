@@ -100,7 +100,7 @@ object AutoWireSpec extends ZIOBaseSpec {
           } @@ TestAspect.exceptScala3,
           test("reports circular dependencies") {
             import TestLayer._
-            val program: URIO[Int, Boolean] = ZIO.service[OldLady].map(_ > 0)
+            val program: URIO[Int, Boolean] = ZIO.service[Int].map(_ > 0)
             val _                               = program
 
             val checked = typeCheck("program.provideSome[Int&Float]()")
@@ -283,8 +283,8 @@ object AutoWireSpec extends ZIOBaseSpec {
             def test3[I1, I4, O1, O2](a: ZLayer[I1 & Double, Nothing, O1 & O2], b: ZLayer[I1 & Float, Nothing, Int]): ZLayer[I1 & Double & Float, Nothing, O1 & O2 & Int] =
               ZLayer.makeSome[I1 & Double & Float, O1 & O2 & Int ](a, b)
 
-            def test4[I1,O1,O2](a: ZLayer[I1&Double, Nothing, O1&String], b: ZLayer[O1&Float, Nothing, Int]): ZLayer[I1&Double&Float, Nothing, O1&String&Int] =
-              ZLayer.makeSome[I1&Double&Float, O1&O2&Int](a, b)
+            def test4[I1,O1](a: ZLayer[I1&Double, Nothing, O1&String], b: ZLayer[O1&Float, Nothing, Int]): ZLayer[I1&Double&Float, Nothing, O1&String&Int] =
+              ZLayer.makeSome[I1&Double&Float, O1&String&Int](a, b)
 
             val t1 = test1 _
             val t2 = test2 _
