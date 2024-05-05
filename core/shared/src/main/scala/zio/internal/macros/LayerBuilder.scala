@@ -87,19 +87,18 @@ final case class LayerBuilder[Type, Expr](
      * constructed ZLayer that will build the target types. This, of course, may
      * fail with one or more GraphErrors.
      */
-    val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] = {
-      val nodes: List[Node[Type, Expr]] = providedLayerNodes
-      val graph                         = Graph(nodes, typeEquals, typeToNode, remainder)
-
+    val nodes: List[Node[Type, Expr]] = providedLayerNodes
+    val graph                         = Graph(nodes, typeEquals, typeToNode, remainder)
+    val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] = 
       graph.buildNodes(target, sideEffectNodes)
-    }
+    
 
     layerTreeEither match {
       case Left(buildErrors) =>
         reportBuildErrors(buildErrors)
 
       case Right(tree) =>
-        warnUnused(tree)
+        warnUnused(tree, graph.usedRemainders())
         maybeDebug.foreach(debugLayer(_, tree))
         foldTree(tree)
     }
@@ -146,7 +145,7 @@ final case class LayerBuilder[Type, Expr](
    * used. This will also warn about any specified remainders that aren't
    * actually required, in the case of provideSome/provideCustom.
    */
-  private def warnUnused(tree: LayerTree[Expr]): Unit = {
+  private def warnUnused(tree: LayerTree[Expr], usedRemainders: Set[Expr]): Unit = {
     val usedLayers =
       tree.map(showExpr).toSet
 
@@ -158,7 +157,7 @@ final case class LayerBuilder[Type, Expr](
       reportWarn(message)
     }
 
-    val unusedRemainderLayers = remainderNodes.filterNot(node => usedLayers(showExpr(node.value)))
+    val unusedRemainderLayers = remainderNodes.filterNot(node => usedRemainders.map(showExpr(_))(showExpr(node.value)))
 
     method match {
       case ProvideMethod.Provide => ()

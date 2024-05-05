@@ -11,10 +11,15 @@ final case class Graph[Key, A](
 
   // Map assigning to each type the times that it must be built
   // -1 designs a `Key` from the environment
-  var neededKeys: Map[Key, Int] = Map.empty
+  privatevar neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key] = Nil
   private var envDependencies: List[Key] = Nil
+
+
+  private var usedRemainders: Set[Key] = 
+
+  def usedRemainders(): Set[A] = usedRemainders.map(environment(_)).map(_.value)
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs))
@@ -104,12 +109,13 @@ final case class Graph[Key, A](
     }
   }
     
-  private def addEnv(key: Key): Unit =
+  private def addEnv(key: Key): Unit = {
+    usedRemainders = usedRemainders + key
     getKey(key) match {
       case Some(_) => ()
       case None    => neededKeys = neededKeys + (key -> -1)
     }
-
+  }
   private def addKey(key: Key): Unit =
     getKey(key) match {
       case Some(-1) => ()
