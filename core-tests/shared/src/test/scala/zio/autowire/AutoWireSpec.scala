@@ -100,10 +100,10 @@ object AutoWireSpec extends ZIOBaseSpec {
           } @@ TestAspect.exceptScala3,
           test("reports circular dependencies") {
             import TestLayer._
-            val program: URIO[Int, Boolean] = ZIO.service[Int].map(_ > 0)
+            val program: URIO[OldLady, Boolean] = ZIO.service[OldLady].flatMap(_.willDie)
             val _                               = program
 
-            val checked = typeCheck("program.provideSome[Int&Float]()")
+            val checked = typeCheck("program.provide(OldLady.live, Fly.manEatingFly)")
             assertZIO(checked)(
               isLeft(
                 containsStringWithoutAnsi("TestLayer.Fly.manEatingFly") &&
@@ -116,10 +116,10 @@ object AutoWireSpec extends ZIOBaseSpec {
           } @@ TestAspect.exceptScala3,
           test("reports unused remainders") {
             import TestLayer._
-            val program: URIO[OldLady, Boolean] = ZIO.service[OldLady].flatMap(_.willDie)
+            val program: URIO[Int, Boolean] = ZIO.service[Int].map(_ > 0)
             val _                               = program
 
-            val checked = typeCheck("program.provideSome[OldLady&](OldLady.live, Fly.manEatingFly)")
+            val checked = typeCheck("program.provideSome[Int&Float]()")
             assertZIO(checked)(
               isLeft(
                 containsStringWithoutAnsi("TestLayer.Fly.manEatingFly") &&

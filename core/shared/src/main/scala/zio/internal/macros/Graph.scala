@@ -14,6 +14,7 @@ final case class Graph[Key, A](
   private var neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key] = Nil
+
   private var envDependencies: List[Key] = Nil
 
   private var usedEnvKeys: Set[Key] = Set.empty
@@ -50,12 +51,13 @@ final case class Graph[Key, A](
   private def restartKeys(): Unit = {
     neededKeys = Map.empty
     dependencies = Nil
+    envDependencies = Nil
   }
 
   private def distinctKeys(keys: List[Key]): List[Key] = {
     var distinct: List[Key] = List.empty
     for (k <- keys) {
-      if (!distinct.exists(k2 => keyEquals(k, k2)||keyEquals(k2, k))) distinct = k :: distinct
+      if (!distinct.exists(k2 => keyEquals(k, k2))) distinct = k :: distinct
     }
     distinct.reverse
   }
@@ -71,7 +73,7 @@ final case class Graph[Key, A](
     var created: List[Key] = Nil
 
     forEach(outputs) { output =>
-      if (created.exists(k => keyEquals(output, k)||keyEquals(k, output))) Right(())
+      if (created.exists(k => keyEquals(k, output))) Right(())
       else if(isEnv(output)) Right(addEnv(output))
       else {
         for {
@@ -101,7 +103,7 @@ final case class Graph[Key, A](
   private def getKey(key: Key): Option[Int] = {
     neededKeys.get(key) match {
       case Some(n) => Some(n)
-      case None => neededKeys.keySet.find(k => keyEquals(k, key)||keyEquals(key, k)) match {
+      case None => neededKeys.keySet.find(k => keyEquals(key, k)) match {
         case Some(aliasKey) => neededKeys.get(aliasKey)
         case None => None
       }
