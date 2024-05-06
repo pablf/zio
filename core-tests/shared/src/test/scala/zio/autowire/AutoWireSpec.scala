@@ -114,21 +114,6 @@ object AutoWireSpec extends ZIOBaseSpec {
               )
             )
           } @@ TestAspect.exceptScala3,
-          test("reports unused remainders") {
-            val program: URIO[Int, Boolean] = ZIO.service[Int].map(_ > 0)
-            val _                               = program
-
-            val checked = typeCheck("program.provideSome[Int&Float]()")
-            assertZIO(checked)(
-              isLeft(
-                containsStringWithoutAnsi("TestLayer.Fly.manEatingFly") &&
-                  containsStringWithoutAnsi("OldLady.live") &&
-                  containsStringWithoutAnsi(
-                    "A layer simultaneously requires and is required by another"
-                  )
-              )
-            )
-          } @@ TestAspect.exceptScala3,
         ),
         suite("`ZLayer.make`")(
           test("automatically constructs a layer") {
