@@ -115,7 +115,6 @@ object AutoWireSpec extends ZIOBaseSpec {
             )
           } @@ TestAspect.exceptScala3,
           test("reports unused remainders") {
-            import TestLayer._
             val program: URIO[Int, Boolean] = ZIO.service[Int].map(_ > 0)
             val _                               = program
 

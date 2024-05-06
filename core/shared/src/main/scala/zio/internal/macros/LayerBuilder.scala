@@ -157,7 +157,7 @@ final case class LayerBuilder[Type, Expr](
       reportWarn(message)
     }
 
-    val unusedRemainderLayers = remainderNodes.filterNot(node => usedRemainders.map(showExpr(_))(showExpr(node.value)))
+    val unusedRemainderLayers = remainderNodes.filterNot(node => usedRemainders.map(showExpr(_)).apply(showExpr(node.value)))
 
     method match {
       case ProvideMethod.Provide => ()
