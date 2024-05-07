@@ -181,7 +181,7 @@ final case class Graph[Key, A](
     else nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(::(error, Nil))
 
   private def isEnv(key: Key): Boolean =
-    envKeys.exists(env => keyEquals(env, key))
+    envKeys.exists(env => keyEquals(key, env))
 
   private def buildNode(
     node: Node[Key, A],
