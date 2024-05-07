@@ -85,7 +85,6 @@ final case class Graph[Key, A](
   }
 
 
-
   /**
    * Restarts variables for next iteration of buildComplete
    */
