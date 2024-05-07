@@ -173,6 +173,13 @@ final case class Graph[Key, A](
       else deps >>> LayerTree.succeed(node.value)
     }
 
+  private def tapKey(key: Key): Option[Int] = {
+    neededKeys.get(key) match {
+      case Some(n) => Some(n)
+      case None => neededKeys.find(pair => keyEquals(pair._1, key)||keyEquals(key, pair._1)).map(_._2)
+    }
+  }
+
   /**
    * Builds a layer containing only types that appears once. Types appearing
    * more than once are replaced with ZLayer.environment[_] and left for the
@@ -184,7 +191,7 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right((LayerTree.succeed(environment(output).value), true))
       }
-      else neededKeys.get(output) match {
+      else tapKey(output) match {
         case None => throw new Throwable(s"This shouldn't happen: $output but $neededKeys")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
