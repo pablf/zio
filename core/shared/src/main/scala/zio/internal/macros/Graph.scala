@@ -106,13 +106,13 @@ final case class Graph[Key, A](
   }
 
   private def getKey(key: Key): Option[Int] = {
-    neededKeys.get(key) match {
+    neededKeys.get(key) /*match {
       case Some(n) => Some(n)
       case None => neededKeys.keySet.find(k => keyEquals(k, key)||keyEquals(key, k)) match {
         case Some(aliasKey) => neededKeys.get(aliasKey)
         case None => None
       }
-    }
+    }*/
   }
     
   private def addEnv(key: Key): Unit = {
@@ -140,7 +140,7 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right(LayerTree.succeed(environment(output).value))
       }
-      else getKey(output) match {
+      else neededKeys.get(output) match {
         case None => throw new Throwable(s"This shouldn't happen")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
@@ -162,7 +162,7 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right((LayerTree.succeed(environment(output).value), true))
       }
-      else getKey(output) match {
+      else neededKeys.get(key) match {
         case None => throw new Throwable(s"This shouldn't happen")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
@@ -196,7 +196,7 @@ final case class Graph[Key, A](
       if (isEnv(input)) {
             envDependencies = input :: envDependencies
             Right((LayerTree.succeed(environment(input).value), true))
-      } else getKey(input) match {
+      } else neededKeys.get(input) match {
                     case None    => Left(::(GraphError.missingTransitiveDependency(node, input), Nil))
                     case Some(1) => {
                       for {
