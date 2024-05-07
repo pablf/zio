@@ -162,7 +162,7 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right((LayerTree.succeed(environment(output).value), true))
       }
-      else neededKeys.get(key) match {
+      else neededKeys.get(output) match {
         case None => throw new Throwable(s"This shouldn't happen")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
