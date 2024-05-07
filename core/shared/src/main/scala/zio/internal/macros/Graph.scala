@@ -119,7 +119,7 @@ final case class Graph[Key, A](
         for {
         node <- getNodeWithOutput[GraphError[Key, A]](
                   output,
-                  error = if (topLevel) Some(GraphError.MissingTopLevelDependency(output)) else Some(GraphError.missingTransitiveDependency(parent.get, output))
+                  error = if (topLevel|| parent.isEmpty) Some(GraphError.MissingTopLevelDependency(output)) else Some(GraphError.missingTransitiveDependency(parent.get, output))
                 )
         nodeOutputs = node.outputs.map(out => findKey(out, outputs))
         _ <- Right(nodeOutputs.map(addKey(_)))
@@ -133,7 +133,7 @@ final case class Graph[Key, A](
       }
     }
 
-    
+
     Right(())
   }
 
