@@ -76,6 +76,7 @@ final case class Graph[Key, A](
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
   }
 
+  
 
   /**
    * Restarts variables for next iteration of buildComplete
