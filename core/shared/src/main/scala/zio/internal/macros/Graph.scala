@@ -80,7 +80,7 @@ final case class Graph[Key, A](
     val set = newDeps.toSet
     if (set == lastDeps) List.empty else {
       lastDeps = set
-      set
+      newDeps
     }
   }
 
