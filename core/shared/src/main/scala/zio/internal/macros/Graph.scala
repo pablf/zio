@@ -185,7 +185,7 @@ final case class Graph[Key, A](
         Right((LayerTree.succeed(environment(output).value), true))
       }
       else neededKeys.get(output) match {
-        case None => throw new Throwable(s"This shouldn't happen: $output")
+        case None => throw new Throwable(s"This shouldn't happen: $output but $neededKeys")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
         case Some(n) => {
