@@ -132,9 +132,6 @@ final case class Graph[Key, A](
       } yield ()
       }
     }
-
-
-    Right(())
   }
 
   private def findKey(key: Key, keys: List[Key]): Key = {
