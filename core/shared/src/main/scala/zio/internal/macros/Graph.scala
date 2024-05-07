@@ -86,8 +86,9 @@ final case class Graph[Key, A](
                   case None =>
                     getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
                 }
-        _ <- Right(node.outputs.map(out => findKey(out, outputs)).map(addKey(_)))
-        _ <- Right{created = node.outputs ++ created}
+        nodeOutputs = node.outputs.map(out => findKey(out, outputs))
+        _ <- Right(nodeOutputs.map(addKey(_)))
+        _ <- Right{created = nodeOutputs ++ created}
         _ <- parent match {
                case Some(p) => assertNonCircularDependency(p, seen, node)
                case None    => Right(())
