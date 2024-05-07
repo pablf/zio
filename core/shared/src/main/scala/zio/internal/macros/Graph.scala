@@ -52,12 +52,15 @@ final case class Graph[Key, A](
   private var usedEnvKeys: Set[Key] = Set.empty
 
   private var lastDeps: Set[Key] = Set.empty
+  private var numberOfDeps = 0
+  private var counter = 0
 
   def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
   private var topLevel = true
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
+    _ <- Right(countDeps())
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs).map(_._1)
     leftTree    <- buildComplete(constructDeps())
@@ -74,12 +77,19 @@ final case class Graph[Key, A](
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
+  private def countDeps(): Unit = {
+    for (pair <- neededKeys.iterator) {
+      if (pair._2>0) numberOfDeps = numberOfDeps + pair._2
+    }
+  }
+  
   private def constructDeps(): List[Key] = {
     val newDeps = if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
     val set = newDeps.toSet
-    if (set == lastDeps) throw new Throwable(s"Bad error $neededKeys") else {
+    if (counter > numberOfDeps && set == lastDeps) throw new Throwable(s"Bad error $neededKeys") else {
       lastDeps = set
+      counter = counter + 1
       newDeps
     }
   }
