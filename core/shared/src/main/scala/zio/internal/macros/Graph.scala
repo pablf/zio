@@ -52,11 +52,12 @@ final case class Graph[Key, A](
   private var usedEnvKeys: Set[Key] = Set.empty
 
   def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
+  private var topLevel = true
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
-    _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs))
+    _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
-    rightTree   <- build(outputs)
+    (rightTree, _)   <- build(outputs)
     leftTree    <- buildComplete(constructDeps())
   } yield leftTree >>> (rightTree ++ sideEffects)
 
@@ -66,7 +67,7 @@ final case class Graph[Key, A](
       for {
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
-        rightTree <- build(outputs)
+        (rightTree, _) <- build(outputs)
         leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
@@ -76,7 +77,7 @@ final case class Graph[Key, A](
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
   }
 
-  
+
 
   /**
    * Restarts variables for next iteration of buildComplete
@@ -100,11 +101,12 @@ final case class Graph[Key, A](
    */
   def mkNeededKeys(
     outputs: List[Key],
+    topLevel: Boolean = false
     seen: Set[Node[Key, A]] = Set.empty,
     parent: Option[Node[Key, A]] = None
   ): Either[::[GraphError[Key, A]], Unit] = {
     var created: Set[Key] = Set.empty
-    var (envOutputs, normalOutputs) =
+    var (envOutputs, normalOutputs) = outputs.partition(isEnv(_))
 
     envOutputs.map(addEnv(_))
 
@@ -126,7 +128,7 @@ final case class Graph[Key, A](
                case Some(p) => assertNonCircularDependency(p, seen, node)
                case None    => Right(())
              }
-        _ <- mkNeededKeys(node.inputs, seen + node, Some(node))
+        _ <- mkNeededKeys(node.inputs, false, seen + node, Some(node))
       } yield ()
       }
     }
