@@ -86,7 +86,7 @@ final case class Graph[Key, A](
                   case None =>
                     getNodeWithOutput[GraphError[Key, A]](output, error = GraphError.MissingTopLevelDependency(output))
                 }
-        _ <- Right(node.outputs.map(addKey(_)))
+        _ <- Right(node.outputs.map(out => findKey(out, outputs)).map(addKey(_)))
         _ <- Right{created = node.outputs ++ created}
         _ <- parent match {
                case Some(p) => assertNonCircularDependency(p, seen, node)
@@ -98,6 +98,10 @@ final case class Graph[Key, A](
     }
 
     Right(())
+  }
+
+  private def findKey(key: Key, keys: List[Key]): Key = {
+    keys.find(k => keyEquals(key, k)).getOrElse(key)
   }
 
   private def getKey(key: Key): Option[Int] = {
