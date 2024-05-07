@@ -119,7 +119,7 @@ final case class Graph[Key, A](
         for {
         node <- getNodeWithOutput[GraphError[Key, A]](
                   output,
-                  error = if (topLevel|| parent.isEmpty) Some(GraphError.MissingTopLevelDependency(output)) else Some(GraphError.missingTransitiveDependency(parent.get, output))
+                  error = if (topLevel || parent.isEmpty) Some(GraphError.MissingTopLevelDependency(output)) else Some(GraphError.missingTransitiveDependency(parent.get, output))
                 )
         nodeOutputs = node.outputs.map(out => findKey(out, outputs))
         _ <- Right(nodeOutputs.map(addKey(_)))
@@ -185,7 +185,7 @@ final case class Graph[Key, A](
         Right((LayerTree.succeed(environment(output).value), true))
       }
       else neededKeys.get(output) match {
-        case None => throw new Throwable(s"This shouldn't happen")
+        case None => throw new Throwable(s"This shouldn't happen: $output")
         case Some(1) =>
           getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
         case Some(n) => {
