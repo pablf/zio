@@ -168,7 +168,7 @@ final case class Graph[Key, A](
 
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     build(node.inputs)
-    .map { (deps, allEnv) =>
+    .map { case (deps, allEnv) =>
       if (allEnv) LayerTree.succeed(node.value)
       else deps >>> LayerTree.succeed(node.value)
     }
