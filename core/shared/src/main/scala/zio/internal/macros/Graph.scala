@@ -57,7 +57,7 @@ final case class Graph[Key, A](
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
-    (rightTree, _)   <- build(outputs)
+    rightTree   <- build(outputs).map(_._1)
     leftTree    <- buildComplete(constructDeps())
   } yield leftTree >>> (rightTree ++ sideEffects)
 
@@ -67,7 +67,7 @@ final case class Graph[Key, A](
       for {
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
-        (rightTree, _) <- build(outputs)
+        rightTree <- build(outputs).map(_._1)
         leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
@@ -101,11 +101,11 @@ final case class Graph[Key, A](
    */
   def mkNeededKeys(
     outputs: List[Key],
-    topLevel: Boolean = false
+    topLevel: Boolean = false,
     seen: Set[Node[Key, A]] = Set.empty,
     parent: Option[Node[Key, A]] = None
   ): Either[::[GraphError[Key, A]], Unit] = {
-    var created: Set[Key] = Set.empty
+    var created: List[Key] = List.empty
     var (envOutputs, normalOutputs) = outputs.partition(isEnv(_))
 
     envOutputs.map(addEnv(_))
