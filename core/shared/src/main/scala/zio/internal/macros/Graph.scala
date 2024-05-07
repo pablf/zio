@@ -51,16 +51,18 @@ final case class Graph[Key, A](
 
   private var usedEnvKeys: Set[Key] = Set.empty
 
+  private var lastKeys: Map[Key, Int] = Map.empty
   private var lastDeps: Set[Key] = Set.empty
   private var numberOfDeps = 0
   private var counter = 0
+  private var lastNumber = -1
 
   def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
   private var topLevel = true
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
-    _ <- Right(countDeps())
+
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs).map(_._1)
     leftTree    <- buildComplete(constructDeps())
@@ -77,21 +79,28 @@ final case class Graph[Key, A](
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
-  private def countDeps(): Unit = {
+  private def countDeps(): Int = {
+    var c = 0
     for (pair <- neededKeys.iterator) {
-      if (pair._2>0) numberOfDeps = numberOfDeps + pair._2
+      if (pair._2>0) c = c + pair._2
     }
+    c
   }
   
   private def constructDeps(): List[Key] = {
     val newDeps = if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
-    val set = newDeps.toSet
+    numberOfDeps = countDeps()
+    if (lastNumber > -1 && lastNumber < numberOfDeps) throw new Throwable(s"Bad: $neededKeys") else {
+      lastNumber = numberOfDeps
+      newDeps
+    }
+    /*val set = newDeps.toSet
     if (counter > numberOfDeps && set == lastDeps) List.empty else {
       lastDeps = set
       counter = counter + 1
       newDeps
-    }
+    }*/
   }
 
 
@@ -217,17 +226,6 @@ final case class Graph[Key, A](
     .map { deps =>
       (deps.map(_._1).distinct.combineHorizontally, deps.forall(_._2))
     }
-/*
-    S conjunto de nodos, conjunto de entradas I y output O
-
-    def build
-    1. Dada una salida Out, encontramos el número de veces que deben construirse cada una de los out<-Out, con el objetivo de construirlas una vez
-    2. Los o de Out que se construyen una vez se construyen y los que no se pone env.
-
-
-
-
-*/
 
   def map[B](f: A => B): Graph[Key, B] =
     Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f), envKeys)
