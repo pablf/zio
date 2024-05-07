@@ -133,6 +133,7 @@ final case class Graph[Key, A](
       }
     }
 
+    
     Right(())
   }
 
