@@ -131,7 +131,7 @@ final case class Graph[Key, A](
         _ <- mkNeededKeys(node.inputs, false, seen + node, Some(node))
       } yield ()
       }
-    }
+    }.map(_ => ())
   }
 
   private def findKey(key: Key, keys: List[Key]): Key = {
