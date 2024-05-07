@@ -91,7 +91,7 @@ final case class Graph[Key, A](
     val newDeps = if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
     numberOfDeps = countDeps()
-    if (lastNumber > -1 && lastNumber < numberOfDeps) throw new Throwable(s"Bad: $neededKeys") else {
+    if (lastNumber > -1 && lastNumber <= numberOfDeps) throw new Throwable(s"Bad: $neededKeys") else {
       lastNumber = numberOfDeps
       newDeps
     }
