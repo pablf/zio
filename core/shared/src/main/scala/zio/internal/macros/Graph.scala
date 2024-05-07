@@ -51,6 +51,8 @@ final case class Graph[Key, A](
 
   private var usedEnvKeys: Set[Key] = Set.empty
 
+  private var lastDeps: Set[Key] = Set.empty
+
   def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
   private var topLevel = true
 
@@ -73,8 +75,13 @@ final case class Graph[Key, A](
     else Right(LayerTree.empty)
 
   private def constructDeps(): List[Key] = {
-    if (dependencies.isEmpty) dependencies
+    val newDeps = if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
+    val set = newDeps.toSet
+    if (set == lastDeps) List.empty else {
+      lastDeps = set
+      set
+    }
   }
 
 
