@@ -89,9 +89,8 @@ final case class LayerBuilder[Type, Expr](
      */
     val nodes: List[Node[Type, Expr]] = providedLayerNodes
     val graph                         = Graph(nodes, typeEquals, typeToNode, remainder)
-    val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] = 
+    val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] =
       graph.buildNodes(target, sideEffectNodes)
-    
 
     layerTreeEither match {
       case Left(buildErrors) =>
@@ -157,7 +156,8 @@ final case class LayerBuilder[Type, Expr](
       reportWarn(message)
     }
 
-    val unusedRemainderLayers = remainderNodes.filterNot(node => usedRemainders.map(showExpr(_)).apply(showExpr(node.value)))
+    val unusedRemainderLayers =
+      remainderNodes.filterNot(node => usedRemainders.map(showExpr(_)).apply(showExpr(node.value)))
 
     method match {
       case ProvideMethod.Provide => ()
