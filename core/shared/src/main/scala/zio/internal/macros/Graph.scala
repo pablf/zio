@@ -9,63 +9,19 @@ final case class Graph[Key, A](
   envKeys: List[Key],
 ) {
 
-/*
-  def fold[A, K](out: List[K], buildOrNot: Map/*Nodes or Key*/, build: K => A, notBuild: K => A): A = {
-    var l: List[A]
-
-  }
-
-  def fold[A, Info](out: List[Key], build: (List[Key], Info) => Either[::[GraphError[Key, A]], LayerTree[A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = {
-    for {
-      buildInformation <- mkBuildInformation(out)
-      right <- build(out, buildInformation)
-      deps <- buildInformation.buildDeps()
-      left <- fold(deps, build)
-    } yield left >>> right
-  }
-
-  def customBuild()
-
-
-
-  case class BuildInformation() {
-    var neededKeys: Map[Key, Int] = Map.empty
-    var envDeps: Set[Key] = Set.empty
-    var deps: Set[Key] = Set.empty
-    def buildDeps(): List[Key]
-
-  }
-
-
-
-*/
-
-
   // Map assigning to each type the times that it must be built
   // -1 designs a `Key` from the environment
   private var neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key] = Nil
-
   private var envDependencies: List[Key] = Nil
 
   private var usedEnvKeys: Set[Key] = Set.empty
-
-  private var lastKeys: Map[Key, Int] = Map.empty
-  private var lastDeps: Set[Key] = Set.empty
-  private var numberOfDeps = 0
-  private var counter = 0
-  private var lastNumber = -1
-
-  private var toBuilt = 0
-  private var alreadyBuilt = 0
-
   def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
   private var topLevel = true
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
-    _           <- Right{toBuilt = neededKeys.keySet.size}
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs).map(_._1)
     leftTree    <- buildComplete(constructDeps())
@@ -81,29 +37,10 @@ final case class Graph[Key, A](
         leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
-
-  private def countDeps(): Int = {
-    var c = 0
-    for (pair <- neededKeys.iterator) {
-      if (pair._2>0) c = c + pair._2
-    }
-    c
-  }
   
   private def constructDeps(): List[Key] = {
-    val newDeps = if (dependencies.isEmpty) dependencies
+    if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
-    if(alreadyBuilt != toBuilt) newDeps else List.empty/*numberOfDeps = countDeps()
-    if (lastNumber > -1 && lastNumber <= numberOfDeps) throw new Throwable(s"Bad: $neededKeys") else {
-      lastNumber = numberOfDeps
-      newDeps
-    }*/
-    /*val set = newDeps.toSet
-    if (counter > numberOfDeps && set == lastDeps) List.empty else {
-      lastDeps = set
-      counter = counter + 1
-      newDeps
-    }*/
   }
 
 
@@ -140,7 +77,7 @@ final case class Graph[Key, A](
 
     forEach(normalOutputs) { output =>
       if (created.exists(k => keyEquals(k, output)) ) {
-        if (neededKeys.get(output).isEmpty) throw new Throwable("This definitely shouldn't happen...")
+        if (neededKeys.get(output).isEmpty) throw new Throwable("This can't happen.")
         Right(())
       }
       else {
@@ -164,28 +101,17 @@ final case class Graph[Key, A](
 
   private def findKey(key: Key, keys: List[Key]): Key = {
     keys.find(k => keyEquals(key, k)).getOrElse(key)
-    //keys.find(k => keyEquals(key, k)||keyEquals(k, key)).getOrElse(key)
-  }
-
-  private def getKey(key: Key): Option[Int] = {
-    neededKeys.get(key) /*match {
-      case Some(n) => Some(n)
-      case None => neededKeys.keySet.find(k => keyEquals(k, key)||keyEquals(key, k)) match {
-        case Some(aliasKey) => neededKeys.get(aliasKey)
-        case None => None
-      }
-    }*/
   }
     
   private def addEnv(key: Key): Unit = {
     usedEnvKeys = usedEnvKeys + key
-    getKey(key) match {
+    neededKeys.get(key) match {
       case Some(_) => ()
       case None    => neededKeys = neededKeys + (key -> -1)
     }
   }
   private def addKey(key: Key): Unit =
-    getKey(key) match {
+    neededKeys.get(key) match {
       case Some(-1) => ()
       case Some(n) => neededKeys = neededKeys + (key -> (n + 1))
       case None    => neededKeys = neededKeys + (key -> 1)
@@ -203,7 +129,6 @@ final case class Graph[Key, A](
     neededKeys.get(key) match {
       case Some(n) => Some(n)
       case None => neededKeys.find(pair => keyEquals(pair._1, key)||keyEquals(key, pair._1)).map(_._2)
-      //case None => neededKeys.find(pair => keyEquals(pair._1, key)||keyEquals(key, pair._1)).map(_._2)
     }
   }
 
@@ -219,11 +144,9 @@ final case class Graph[Key, A](
         Right((LayerTree.succeed(environment(output).value), true))
       }
       else tapKey(output) match {
-        case None => throw new Throwable(s"This shouldn't happen: $output but $neededKeys")
-        case Some(1) => {
-          alreadyBuilt += 1
+        case None => throw new Throwable(s"This can't happen")
+        case Some(1) => 
           getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
-        }
         case Some(n) => {
           dependencies = output :: dependencies
           Right((LayerTree.succeed(environment(output).value), true))
@@ -238,7 +161,7 @@ final case class Graph[Key, A](
     Graph(nodes.map(_.map(f)), keyEquals, key => environment(key).map(f), envKeys)
 
   private def getNodeWithOutput[E](output: Key, error: Option[E] = None): Either[::[E], Node[Key, A]] =
-    nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(error.map(e => ::(e, Nil)).getOrElse(throw new Throwable("This shouldn't happen")))
+    nodes.find(_.outputs.exists(keyEquals(_, output))).toRight(error.map(e => ::(e, Nil)).getOrElse(throw new Throwable("This can't happen")))
 
   private def isEnv(key: Key): Boolean =
     envKeys.exists(env => keyEquals(key, env)||keyEquals(env, key))
