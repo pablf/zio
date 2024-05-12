@@ -90,7 +90,7 @@ final case class LayerBuilder[Type, Expr](
     val nodes: List[Node[Type, Expr]] = providedLayerNodes
     val graph                         = Graph(nodes, typeEquals, typeToNode, remainder)
     val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] =
-      graph.buildNodes(target, sideEffectNodes)
+      graph.buildNodes(target.filterNot(typeEquals(_, sideEffectType)), sideEffectNodes)
 
     layerTreeEither match {
       case Left(buildErrors) =>
