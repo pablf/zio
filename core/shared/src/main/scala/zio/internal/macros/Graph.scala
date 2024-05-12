@@ -57,12 +57,15 @@ final case class Graph[Key, A](
   private var counter = 0
   private var lastNumber = -1
 
+  private var toBuilt = 0
+  private var alreadyBuilt = 0
+
   def usedRemainders(): Set[A] = usedEnvKeys.map(environment(_)).map(_.value)
   private var topLevel = true
 
   def buildNodes(outputs: List[Key], sideEffectNodes: List[Node[Key, A]]): Either[::[GraphError[Key, A]], LayerTree[A]] = for {
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
-
+    _           <- Right{toBuilt = neededKeys.keySet.size}
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs).map(_._1)
     leftTree    <- buildComplete(constructDeps())
@@ -90,11 +93,11 @@ final case class Graph[Key, A](
   private def constructDeps(): List[Key] = {
     val newDeps = if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
-    numberOfDeps = countDeps()
+    if(alreadyBuilt != toBuilt) newDeps else List.empty/*numberOfDeps = countDeps()
     if (lastNumber > -1 && lastNumber <= numberOfDeps) throw new Throwable(s"Bad: $neededKeys") else {
       lastNumber = numberOfDeps
       newDeps
-    }
+    }*/
     /*val set = newDeps.toSet
     if (counter > numberOfDeps && set == lastDeps) List.empty else {
       lastDeps = set
@@ -160,7 +163,8 @@ final case class Graph[Key, A](
   }
 
   private def findKey(key: Key, keys: List[Key]): Key = {
-    keys.find(k => keyEquals(key, k)||keyEquals(k, key)).getOrElse(key)
+    keys.find(k => keyEquals(key, k)).getOrElse(key)
+    //keys.find(k => keyEquals(key, k)||keyEquals(k, key)).getOrElse(key)
   }
 
   private def getKey(key: Key): Option[Int] = {
@@ -199,6 +203,7 @@ final case class Graph[Key, A](
     neededKeys.get(key) match {
       case Some(n) => Some(n)
       case None => neededKeys.find(pair => keyEquals(pair._1, key)||keyEquals(key, pair._1)).map(_._2)
+      //case None => neededKeys.find(pair => keyEquals(pair._1, key)||keyEquals(key, pair._1)).map(_._2)
     }
   }
 
@@ -215,8 +220,10 @@ final case class Graph[Key, A](
       }
       else tapKey(output) match {
         case None => throw new Throwable(s"This shouldn't happen: $output but $neededKeys")
-        case Some(1) =>
+        case Some(1) => {
+          alreadyBuilt += 1
           getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
+        }
         case Some(n) => {
           dependencies = output :: dependencies
           Right((LayerTree.succeed(environment(output).value), true))
