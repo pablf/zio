@@ -113,7 +113,7 @@ object AutoWireSpec extends ZIOBaseSpec {
                   )
               )
             )
-          } @@ TestAspect.exceptScala3,
+          } @@ TestAspect.exceptScala3
         ),
         suite("`ZLayer.make`")(
           test("automatically constructs a layer") {
@@ -237,7 +237,10 @@ object AutoWireSpec extends ZIOBaseSpec {
           },
           test("makeSome 2 simple layers") {
 
-            def test1[I1, O1, I2](a: ZLayer[I1, Nothing, O1], b: ZLayer[I2, Nothing, Int]): ZLayer[I1 & I2, Nothing, O1 & Int] =
+            def test1[I1, O1, I2](
+              a: ZLayer[I1, Nothing, O1],
+              b: ZLayer[I2, Nothing, Int]
+            ): ZLayer[I1 & I2, Nothing, O1 & Int] =
               ZLayer.makeSome[I1 & I2, O1 & Int](a, b)
 
             def test2[I1, O1](a: ZLayer[I1, Nothing, O1], b: ZLayer[O1, Nothing, Int]): ZLayer[I1, Nothing, O1 & Int] =
@@ -250,7 +253,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             val t2 = test2 _
             val t3 = test3 _
 
-            assertTrue(dummy(t1,t2,t3))
+            assertTrue(dummy(t1, t2, t3))
 
           },
           test("makeSome 2 complex layers") {
@@ -264,34 +267,42 @@ object AutoWireSpec extends ZIOBaseSpec {
             ): ZLayer[I1 & Double & I3 & Float, Nothing, O1 & O2 & Int] =
               ZLayer.makeSome[I1 & Double & I3 & Float, O1 & O2 & Int](a, b)
 
-            def test3[I1, I4, O1, O2](a: ZLayer[I1 & Double, Nothing, O1 & O2], b: ZLayer[I1 & Float, Nothing, Int]): ZLayer[I1 & Double & Float, Nothing, O1 & O2 & Int] =
-              ZLayer.makeSome[I1 & Double & Float, O1 & O2 & Int ](a, b)
+            def test3[I1, I4, O1, O2](
+              a: ZLayer[I1 & Double, Nothing, O1 & O2],
+              b: ZLayer[I1 & Float, Nothing, Int]
+            ): ZLayer[I1 & Double & Float, Nothing, O1 & O2 & Int] =
+              ZLayer.makeSome[I1 & Double & Float, O1 & O2 & Int](a, b)
 
-            def test4[I1,O1](a: ZLayer[I1&Double, Nothing, O1&String], b: ZLayer[O1&Float, Nothing, Int]): ZLayer[I1&Double&Float, Nothing, O1&String&Int] =
-              ZLayer.makeSome[I1&Double&Float, O1&String&Int](a, b)
+            def test4[I1, O1](
+              a: ZLayer[I1 & Double, Nothing, O1 & String],
+              b: ZLayer[O1 & Float, Nothing, Int]
+            ): ZLayer[I1 & Double & Float, Nothing, O1 & String & Int] =
+              ZLayer.makeSome[I1 & Double & Float, O1 & String & Int](a, b)
 
             val t1 = test1 _
             val t2 = test2 _
             val t3 = test3 _
             val t4 = test4 _
 
-            assertTrue(dummy(t1,t2,t3,t4))
+            assertTrue(dummy(t1, t2, t3, t4))
           },
           test("makeSome complex layer and providing") {
-            
+
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): ZLayer[Int, Nothing, R] =
               ZLayer.makeSome[Int, R](a, b)
 
-            val la = ZLayer{(ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
+            val la = ZLayer {
+              (ZIO.service[String] <*> ZIO.service[Int]).map { case (str, int) =>
                 (str.length + int).toLong
-              }}
-            val lb = ZLayer{ZIO.service[Int].map(n => n.toString)}
+              }
+            }
+            val lb = ZLayer(ZIO.service[Int].map(n => n.toString))
 
             val program =
               ZIO.service[Long].provideLayer(ZLayer.succeed(8) >>> test1(la, lb))
 
             assertZIO(program)(equalTo(9.toLong))
-          },
+          }
         )
       )
     )
