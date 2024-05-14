@@ -214,7 +214,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             trait SomeService {}
 
             val layer = ZLayer {
-              (ZIO.service[TransactorForCK] <*> ZIO.service[Config]).map { case (a, b) =>
+              (ZIO.service[TransactorForCK] <*> ZIO.service[Config]).map { case (_, _) =>
                 new SomeService {}
               }
             }
@@ -305,6 +305,38 @@ object AutoWireSpec extends ZIOBaseSpec {
 
             assertTrue(dummy(t1, t2, t3, t4))
           },
+          test("makeSome 3 layers") {
+            def test1[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
+              ZLayer.makeSome[A1 & B1 & C1, A2 & B2 & C2](a, b, c)
+
+            def test2[A1, A2, B1, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[B1 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
+              ZLayer.makeSome[A1 & B1 & C1, A2 & B2 & C2](a, b, c)
+
+            def test3[A1, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
+              ZLayer.makeSome[A1 & B1, C2](a, b, c)
+
+            def test4[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
+              ZLayer.makeSome[A1 & B1 & C1, C2](a, b, c)
+
+            def test5[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & B1, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
+              ZLayer.makeSome[A1 & B1 & C1, C2](a, b, c)
+
+            def test6[A1, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
+              ZLayer.makeSome[A1 & B1, C2](a, b, c)
+
+            def test7[A1, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1 & A2, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
+              ZLayer.makeSome[A1 & B1, C2](a, b, c)
+
+            val t1 = test1 _
+            val t2 = test2 _
+            val t3 = test3 _
+            val t4 = test4 _
+            val t5 = test5 _
+            val t6 = test6 _
+            val t7 = test7 _
+
+            assertTrue(dummy(t1, t2, t3, t4))
+          }
           test("makeSome complex layer and providing") {
 
             def test1[R, R1](a: ZLayer[R1 & Int, Nothing, R], b: ZLayer[Int, Nothing, R1]): ZLayer[Int, Nothing, R] =
