@@ -9,7 +9,7 @@ on:
   pull_request:
   push:
     branches:
-      - 'layer-bug'
+      - 'layer-bug-check'
   release:
     types:
       - published
