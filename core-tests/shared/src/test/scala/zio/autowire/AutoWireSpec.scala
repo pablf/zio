@@ -306,25 +306,25 @@ object AutoWireSpec extends ZIOBaseSpec {
             assertTrue(dummy(t1, t2, t3, t4))
           },
           test("makeSome 3 layers") {
-            def test1[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
+            def test1[A1, A2, B1, B2: Tag, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
               ZLayer.makeSome[A1 & B1 & C1, A2 & B2 & C2](a, b, c)
 
-            def test2[A1, A2, B1, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[B1 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
+            def test2[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[B1 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
               ZLayer.makeSome[A1 & B1 & C1, A2 & B2 & C2](a, b, c)
 
-            def test3[A1, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
+            def test3[A1, A2, B1, B2: Tag, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
 
-            def test4[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
+            def test4[A1, A2, B1, B2: Tag, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1 & C1, C2](a, b, c)
 
-            def test5[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & B1, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
+            def test5[A1, A2, B1: Tag, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & B1, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1 & C1, C2](a, b, c)
 
-            def test6[A1, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
+            def test6[A1, A2, B1, B2: Tag, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
 
-            def test7[A1, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1 & A2, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
+            def test7[A1: Tag, A2, B1, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1 & A2, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
 
             val t1 = test1 _
@@ -335,7 +335,7 @@ object AutoWireSpec extends ZIOBaseSpec {
             val t6 = test6 _
             val t7 = test7 _
 
-            assertTrue(dummy(t1, t2, t3, t4))
+            assertTrue(dummy(t1, t2, t3, t4, t5, t6, t7))
           },
           test("makeSome complex layer and providing") {
 
