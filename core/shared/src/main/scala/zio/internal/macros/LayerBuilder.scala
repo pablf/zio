@@ -145,7 +145,7 @@ final case class LayerBuilder[Type, Expr](
    * actually required, in the case of provideSome/provideCustom.
    */
   private def warnUnused(tree: LayerTree[Expr], usedRemainders: Set[Type]): Unit = {
-    
+
     val usedLayers =
       tree.map(showExpr).toSet
 
@@ -158,7 +158,7 @@ final case class LayerBuilder[Type, Expr](
     }
 
     val unusedRemainderLayers =
-      remainder.filterNot(r => usedRemainders.exists(t => keyEquals(t, r)))
+      remainder.filterNot(r => usedRemainders.exists(t => typeEquals(t, r)))
 
     method match {
       case ProvideMethod.Provide => ()
