@@ -207,17 +207,19 @@ object AutoWireSpec extends ZIOBaseSpec {
           test("somebug"){
             type BaseDependencies = Config with TransactorForCK
             trait Transactor[A] {}
+            trait Config {}
+            trait Task {}
             trait TransactorForCK { def transactor: Transactor[Task] }
 
             trait SomeService {}
 
-            ZLayer {
+            val layer = ZLayer {
               (ZIO.service[TransactorForCK] <*> ZIO.service[Config]).map { case (a, b) =>
                 new SomeService {}
               }
             }
 
-            val _ = ZLayer.makeSome[BaseDependencies, SomeService]
+            val _ = ZLayer.makeSome[BaseDependencies, SomeService](layer)
 
             assertTrue(true)
           },
