@@ -310,7 +310,7 @@ object AutoWireSpec extends ZIOBaseSpec {
               ZLayer.makeSome[A1 & B1 & C1, A2 & Int & C2](a, b, c)
 
             def test2[A1, A2, B1, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, B2], c: ZLayer[B1 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & B2 & C2] =
-              ZLayer.makeSome[A1 & B1 & C1, A2 & Int & C2](a, b, c)
+              ZLayer.makeSome[A1 & B1 & C1, A2 & B2 & C2](a, b, c)
 
             def test3[A1, A2, B1, Int, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[A2 & Int, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
