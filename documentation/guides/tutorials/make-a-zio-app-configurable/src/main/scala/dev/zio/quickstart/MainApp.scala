@@ -43,7 +43,7 @@ object MainApp extends ZIOAppDefault {
       .provide(
         serverConfig,
         nettyConfig,
-        Server.live,
+        Server.customized,
 
         // A layer responsible for storing the state of the `counterApp`
         ZLayer.fromZIO(Ref.make(0)),
