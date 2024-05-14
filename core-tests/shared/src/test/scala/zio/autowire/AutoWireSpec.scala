@@ -204,6 +204,23 @@ object AutoWireSpec extends ZIOBaseSpec {
           } @@ TestAspect.exceptScala3
         ),
         suite("`ZLayer.makeSome`")(
+          test("somebug"){
+            type BaseDependencies = Config with TransactorForCK
+            trait Transactor[A] {}
+            trait TransactorForCK { def transactor: Transactor[Task] }
+
+            trait SomeService {}
+
+            ZLayer {
+              (ZIO.service[TransactorForCK] <*> ZIO.service[Config]).map { case (a, b) =>
+                new SomeService {}
+              }
+            }
+
+            val _ = ZLayer.makeSome[BaseDependencies, SomeService]
+
+            assertTrue(true)
+          },
           test("automatically constructs a layer, leaving off some remainder") {
             val stringLayer = ZLayer.succeed("this string is 28 chars long")
             val intLayer = ZLayer {
