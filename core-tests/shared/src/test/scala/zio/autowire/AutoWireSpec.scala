@@ -306,20 +306,20 @@ object AutoWireSpec extends ZIOBaseSpec {
             assertTrue(dummy(t1, t2, t3, t4))
           },
           test("makeSome 3 layers") {
-            def test1[A1, A2, B1, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & Int & C2] =
-              ZLayer.makeSome[A1 & B1 & C1, A2 & Int & C2](a, b, c)
+            def test1[A1, A2, B1, C1](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[C1, Nothing, Float]): ZLayer[A1 & B1 & C1, Nothing, A2 & Int & Float] =
+              ZLayer.makeSome[A1 & B1 & C1, A2 & Int & Float](a, b, c)
 
-            def test2[A1, A2, B1, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[B1 & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, A2 & Int & C2] =
-              ZLayer.makeSome[A1 & B1 & C1, A2 & Int & C2](a, b, c)
+            def test2[A1, A2, B1, C1](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[B1 & C1, Nothing, Float]): ZLayer[A1 & B1 & C1, Nothing, A2 & Int & Float] =
+              ZLayer.makeSome[A1 & B1 & C1, A2 & Int & Float](a, b, c)
 
             def test3[A1, A2, B1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[A2 & Int, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
 
-            def test4[A1, A2, B1, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[A2 & Int & C1, Nothing, C2]): ZLayer[A1 & B1 & C1, Nothing, C2] =
-              ZLayer.makeSome[A1 & B1 & C1, C2](a, b, c)
+            def test4[A1, A2, B1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[A2 & Int & Float, Nothing, C2]): ZLayer[A1 & B1 & Float, Nothing, C2] =
+              ZLayer.makeSome[A1 & B1 & Float, C2](a, b, c)
 
-            def test5[A1, A2, B2, C1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & Int, Nothing, B2], c: ZLayer[A2 & B2 & C1, Nothing, C2]): ZLayer[A1 & Int & C1, Nothing, C2] =
-              ZLayer.makeSome[A1 & Int & C1, C2](a, b, c)
+            def test5[A1, A2, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & Int, Nothing, B2], c: ZLayer[A2 & B2 & Float, Nothing, C2]): ZLayer[A1 & Int & Float, Nothing, C2] =
+              ZLayer.makeSome[A1 & Int & Float, C2](a, b, c)
 
             def test6[A1, A2, B1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1, Nothing, Int], c: ZLayer[A2 & Int, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
