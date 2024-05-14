@@ -44,7 +44,7 @@ private [zio] object LayerMacroUtils {
       typeToNode = tpe => Node(Nil, List(tpe), tpe.asType match { case '[t] => '{ZLayer.environment[t] } }),
       showExpr = expr => scala.util.Try(expr.asTerm.pos.sourceCode).toOption.flatten.getOrElse(expr.show),
       showType = _.show,
-      reportWarn = report.warning(_),
+      reportWarn = report.errorAndAbort(_),//report.warning(_),
       reportError = report.errorAndAbort(_)
     )
 
