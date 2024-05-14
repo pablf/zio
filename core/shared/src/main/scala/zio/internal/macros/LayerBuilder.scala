@@ -97,7 +97,7 @@ final case class LayerBuilder[Type, Expr](
         reportBuildErrors(buildErrors)
 
       case Right(tree) =>
-        warnUnused(tree, graph.usedRemainders())
+        warnUnused(tree, graph.usedRemainder)
         maybeDebug.foreach(debugLayer(_, tree))
         foldTree(tree)
     }
@@ -144,7 +144,7 @@ final case class LayerBuilder[Type, Expr](
    * used. This will also warn about any specified remainders that aren't
    * actually required, in the case of provideSome/provideCustom.
    */
-  private def warnUnused(tree: LayerTree[Expr], usedRemainders: Set[Expr]): Unit = {
+  private def warnUnused(tree: LayerTree[Expr], usedRemainders: Set[Type]): Unit = {
     val usedLayers =
       tree.map(showExpr).toSet
 
@@ -157,14 +157,14 @@ final case class LayerBuilder[Type, Expr](
     }
 
     val unusedRemainderLayers =
-      remainderNodes.filterNot(node => usedRemainders.map(showExpr(_)).apply(showExpr(node.value)))
+      remainder.filterNot(r => usedRemainders.exists(t => keyEquals(t, r)))
 
     method match {
       case ProvideMethod.Provide => ()
       case ProvideMethod.ProvideSome | ProvideMethod.ProvideSomeShared =>
         if (!method.isProvideSomeShared && unusedRemainderLayers.nonEmpty) {
           val message = "\n" + TerminalRendering.unusedProvideSomeLayersError(
-            unusedRemainderLayers.map(node => showType(node.outputs.head))
+            unusedRemainderLayers.map(tpe => showType(tpe))
           )
           reportWarn(message)
         }

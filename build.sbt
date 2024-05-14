@@ -400,6 +400,7 @@ lazy val tests = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   )
   .settings(scalacOptions += "-Wconf:msg=[zio.stacktracer.TracingImplicits.disableAutoTrace]:silent")
   .settings(scalacOptions += "-Wconf:msg=[@nowarn annotation does not suppress any warnings]:silent")
+  .settings(scalacOptions += "-Werror")
   .jvmSettings(mimaSettings(failOnProblem = true))
   .jsSettings(
     jsSettings,

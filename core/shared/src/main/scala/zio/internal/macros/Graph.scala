@@ -16,9 +16,7 @@ final case class Graph[Key, A](
   private var dependencies: List[Key]    = Nil
   private var envDependencies: List[Key] = Nil
 
-  private var usedEnvKeys: Set[Key] = Set.empty
-  def usedRemainders(): Set[A]      = usedEnvKeys.map(environment(_)).map(_.value)
-  private var topLevel              = true
+  var usedRemainder: Set[Key] = Set.empty
 
   def buildNodes(
     outputs: List[Key],
@@ -104,7 +102,7 @@ final case class Graph[Key, A](
     keys.find(k => keyEquals(key, k)).getOrElse(key)
 
   private def addEnv(key: Key): Unit = {
-    usedEnvKeys = usedEnvKeys + key
+    usedRemainder = usedRemainder + key
     neededKeys.get(key) match {
       case Some(_) => ()
       case None    => neededKeys = neededKeys + (key -> -1)
