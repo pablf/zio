@@ -145,6 +145,7 @@ final case class LayerBuilder[Type, Expr](
    * actually required, in the case of provideSome/provideCustom.
    */
   private def warnUnused(tree: LayerTree[Expr], usedRemainders: Set[Type]): Unit = {
+    
     val usedLayers =
       tree.map(showExpr).toSet
 
