@@ -318,13 +318,13 @@ object AutoWireSpec extends ZIOBaseSpec {
             def test4[A1, A2, B1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[B1, Nothing, Int], c: ZLayer[A2 & Int & Float, Nothing, C2]): ZLayer[A1 & B1 & Float, Nothing, C2] =
               ZLayer.makeSome[A1 & B1 & Float, C2](a, b, c)
 
-            def test5[A1, A2, B2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & Int, Nothing, B2], c: ZLayer[A2 & B2 & Float, Nothing, C2]): ZLayer[A1 & Int & Float, Nothing, C2] =
+            def test5[A1, A2, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A2 & Int, Nothing, Double], c: ZLayer[A2 & Double & Float, Nothing, C2]): ZLayer[A1 & Int & Float, Nothing, C2] =
               ZLayer.makeSome[A1 & Int & Float, C2](a, b, c)
 
             def test6[A1, A2, B1, C2](a: ZLayer[A1, Nothing, A2], b: ZLayer[A1 & B1, Nothing, Int], c: ZLayer[A2 & Int, Nothing, C2]): ZLayer[A1 & B1, Nothing, C2] =
               ZLayer.makeSome[A1 & B1, C2](a, b, c)
 
-            def test7[A2, B2, C2](a: ZLayer[Int, Nothing, A2], b: ZLayer[Int & Float & A2, Nothing, B2], c: ZLayer[A2 & B2, Nothing, C2]): ZLayer[Int & Float, Nothing, C2] =
+            def test7[A2, C2](a: ZLayer[Int, Nothing, A2], b: ZLayer[Int & Float & A2, Nothing, B2], c: ZLayer[A2 & Double, Nothing, C2]): ZLayer[Int & Float, Nothing, C2] =
               ZLayer.makeSome[Int & Float, C2](a, b, c)
 
             val t1 = test1 _
