@@ -3290,12 +3290,12 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
                 _ => ZChannel.refailCause(cause),
                 _ => ZChannel.refailCause(cause)
               ),
-          _ =>
+          done =>
             ZChannel
               .fromZIO(queue.offer(Take.end))
               .foldCauseChannel(
-                _ => ZChannel.unit,
-                _ => ZChannel.unit
+                err => ZChannel.refailCause(err),
+                _ => ZChannel.succeed(done)
               )
         )
       new ZStream(

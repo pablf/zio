@@ -3790,7 +3790,21 @@ object ZStreamSpec extends ZIOBaseSpec {
             } yield {
               assertTrue(result == 0)
             }
-          }
+          },
+          test("early termination with a slow sink2") {
+            for {
+              ref    <- Ref.make(0)
+              stream  = ZStream(1)
+              sink    = ZSink.foreach((n: Int) => ZIO.sleep(2.second) *> ref.update(_ + n))
+              fib     <- stream.tapSink(sink).mapZIO(_ => ZIO.sleep(1.second)).runDrain.fork
+              _       <- TestClock.adjust(1.second)
+              _       <- fib.join
+              result <- ref.get
+              _       <- ZIO.fail(s"fiber shouldn't have completed! (result=$result)")
+            } yield {
+              assertTrue(result == 0)
+            }
+          },
         ),
         suite("throttleEnforce")(
           test("free elements") {
