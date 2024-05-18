@@ -1,5 +1,7 @@
 package somepackage
 
+import zio.ZLayer
+
 object SomeLayer {
 
   case class A()
