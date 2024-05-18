@@ -1,0 +1,4 @@
+package otherpackage
+
+trait B
+

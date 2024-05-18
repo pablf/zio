@@ -353,6 +353,10 @@ object AutoWireSpec extends ZIOBaseSpec {
               ZIO.service[Long].provideLayer(ZLayer.succeed(8) >>> test1(la, lb))
 
             assertZIO(program)(equalTo(9.toLong))
+          },
+          test("makeSome in different packages") {
+            val _ = ZLayer.makeSome[otherpackage.B, somepackage.SomeLayer.A](somepackage.SomeLayer.live)
+            assertTrue(true)
           }
         )
       )
