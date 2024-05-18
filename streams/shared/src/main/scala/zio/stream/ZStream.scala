@@ -3294,14 +3294,14 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
             ZChannel
               .fromZIO(queue.offer(Take.end))
               .foldCauseChannel(
-                err => ZChannel.refailCause(err),
+                err => ZChannel.succeed(done),
                 _ => ZChannel.succeed(done)
               )
         )
       new ZStream(
         ZChannel.fromZIO(promise.await) *> self.channel
           .pipeTo(loop)
-          .ensuring(queue.offer(Take.end).forkDaemon *> queue.awaitShutdown) *> ZChannel.unit
+          .ensuring(queue.offer(Take.end).forkDaemon *> queue.awaitShutdown)// *> ZChannel.unit
       )
         .merge(ZStream.execute((promise.succeed(()) *> right.run(sink)).ensuring(queue.shutdown)), HaltStrategy.Both)
     }
