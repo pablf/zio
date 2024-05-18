@@ -3294,7 +3294,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
             ZChannel
               .fromZIO(queue.offer(Take.end))
               .foldCauseChannel(
-                err => ZChannel.succeed(done),
+                _ => ZChannel.succeed(done),
                 _ => ZChannel.succeed(done)
               )
         )

@@ -3804,6 +3804,19 @@ object ZStreamSpec extends ZIOBaseSpec {
             } yield {
               assertTrue(result == 0)
             }
+          } @@ TestAspect.timeout(3.seconds),
+          test("merge, debounce 1") {
+            val stream1: UStream[Int | Unit] =
+              (ZStream.succeed(0) ++ ZStream.fromZIO(ZIO.sleep(200.millis)))
+                .debounce(100.millis)
+            val stream2: UStream[Nothing] = ZStream.empty
+
+            val effectAll = (stream1 merge stream2).runDrain
+            for
+              _ <- effectAll
+                .catchAllDefect(ZIO.fail(_))
+                .tapErrorCause(ZIO.logErrorCause("mmm sweet", _))
+            yield assertTrue(true)
           },
         ),
         suite("throttleEnforce")(
