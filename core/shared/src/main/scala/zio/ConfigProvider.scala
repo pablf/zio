@@ -446,13 +446,13 @@ object ConfigProvider {
       final case class Has(chars: Set[Char]) extends Constants {
         override def appliesTo(path: String) = path.exists(chars(_))
       }
-      final case object Not(c: Constants) extends Constants {
+      final case class Not(c: Constants) extends Constants {
         override def appliesTo(path: String) = !c.appliesTo(path)
       }
-      final case And(c: List[Constants]) extends Constants {
+      final case class And(c: List[Constants]) extends Constants {
         override def appliesTo(path: String) = c.forall(_.appliesTo(path))
       }
-      final case Or(c: List[Constants]) extends Constants {
+      final case class Or(c: List[Constants]) extends Constants {
         override def appliesTo(path: String) = c.exists(_.appliesTo(path))
       }
     }
