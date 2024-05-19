@@ -599,7 +599,7 @@ object ConfigProviderSpec extends ZIOBaseSpec {
           } yield assertTrue(result1 == "value1" && result2 == "value2")
         } +
         test("has"){
-          val constants = ConfigProvider.Constants.hasNumbers()
+          val constants = ConfigProvider.Constants.hasNumbers
           val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT1" -> "value2")).kebabCase(constants)
           val config1         = Config.string("snakeCase")
           val config2         = Config.string("CONSTANT1")
@@ -609,7 +609,7 @@ object ConfigProviderSpec extends ZIOBaseSpec {
           } yield assertTrue(result1 == "value1" && result2 == "value2")
         } +
         test("not"){
-          val constants = ConfigProvider.Constants.hasNumbers().not
+          val constants = ConfigProvider.Constants.hasNumbers.not
           val configProvider = ConfigProvider.fromMap(Map("snake_case1" -> "value1", "CONSTANT" -> "value2")).kebabCase(constants)
           val config1         = Config.string("snakeCase1")
           val config2         = Config.string("CONSTANT")
