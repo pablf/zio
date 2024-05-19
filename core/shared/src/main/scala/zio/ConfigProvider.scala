@@ -43,7 +43,7 @@ trait ConfigProvider {
    * adapt the names of configuration properties from one naming convention to
    * another.
    */
-  final def contramapPath(f: String => String, constants: Option[Constants] = None): ConfigProvider =
+  final def contramapPath(f: String => String, constants: Option[ConfigProvider.Constants] = None): ConfigProvider =
     ConfigProvider.fromFlat(self.flatten.contramapPath(f, constants))
 
   /**
