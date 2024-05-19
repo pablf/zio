@@ -43,8 +43,8 @@ trait ConfigProvider {
    * adapt the names of configuration properties from one naming convention to
    * another.
    */
-  final def contramapPath(f: String => String): ConfigProvider =
-    ConfigProvider.fromFlat(self.flatten.contramapPath(f))
+  final def contramapPath(f: String => String, constants: Option[Constants] = None): ConfigProvider =
+    ConfigProvider.fromFlat(self.flatten.contramapPath(f, constants))
 
   /**
    * Flattens this config provider into a simplified config provider that knows
@@ -68,6 +68,9 @@ trait ConfigProvider {
   final def kebabCase: ConfigProvider =
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase)
 
+  final def kebabCase(criteria: Constants): ConfigProvider =
+    contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase, Some(criteria))
+
   /**
    * Returns a new config provider that will automatically convert all property
    * names to lower case. This can be utilized to adapt the names of
@@ -76,6 +79,9 @@ trait ConfigProvider {
    */
   final def lowerCase: ConfigProvider =
     contramapPath(_.toLowerCase)
+
+  final def lowerCase(criteria: Constants): ConfigProvider =
+    contramapPath(_.toLowerCase, Some(criteria))
 
   /**
    * Returns a new config provider that will automatically nest all
@@ -103,6 +109,9 @@ trait ConfigProvider {
   final def snakeCase: ConfigProvider =
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase)
 
+  final def snakeCase(criteria: Constants): ConfigProvider =
+    contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase, Some(criteria))
+
   /**
    * Returns a new config provider that will automatically unnest all
    * configuration from the specified property name.
@@ -118,6 +127,9 @@ trait ConfigProvider {
    */
   final def upperCase: ConfigProvider =
     contramapPath(_.toUpperCase)
+
+  final def upperCase(criteria: Constants): ConfigProvider =
+    contramapPath(_.toUpperCase, Some(criteria))
 
   /**
    * Returns a new config provider that transforms the config provider with the
@@ -146,7 +158,7 @@ object ConfigProvider {
 
     def enumerateChildren(path: Chunk[String])(implicit trace: Trace): IO[Config.Error, Set[String]]
 
-    def contramapPath(f: String => String): Flat =
+    def contramapPath(f: String => String, constants: Option[Constants] = None): Flat =
       new Flat {
         override def load[A](path: Chunk[String], config: Config.Primitive[A], split: Boolean)(implicit
           trace: Trace
@@ -162,7 +174,7 @@ object ConfigProvider {
           load(path, config, true)
 
         override def patch: PathPatch =
-          self.patch.mapName(f)
+          self.patch.mapName(f, constants)
       }
 
     def load[A](path: Chunk[String], config: Config.Primitive[A], split: Boolean)(implicit
@@ -263,8 +275,10 @@ object ConfigProvider {
               loop(path, first :: second :: tail)
             case Empty :: tail =>
               loop(path, tail)
-            case MapName(f) :: tail =>
+            case MapName(f, None) :: tail =>
               loop(path.map(f), tail)
+            case MapName(f, Some(constants)) :: tail =>
+              loop(path.map(p => if (constants.appliesTo(p)) p else f(p)), tail)
             case Nested(name) :: tail =>
               loop(name +: path, tail)
             case Unnested(name) :: tail =>
@@ -277,8 +291,8 @@ object ConfigProvider {
         loop(path, List(self))
       }
 
-      def mapName(f: String => String): PathPatch =
-        AndThen(self, MapName(f))
+      def mapName(f: String => String, constants: Option[Constants]): PathPatch =
+        AndThen(self, MapName(f, constants))
 
       def nested(name: String): PathPatch =
         AndThen(self, Nested(name))
@@ -294,7 +308,7 @@ object ConfigProvider {
 
       private final case class AndThen(first: PathPatch, second: PathPatch) extends PathPatch
       private case object Empty                                             extends PathPatch
-      private final case class MapName(f: String => String)                 extends PathPatch
+      private final case class MapName(f: String => String, constants: Option[Constants])                 extends PathPatch
       private final case class Nested(name: String)                         extends PathPatch
       private final case class Unnested(name: String)                       extends PathPatch
     }
@@ -336,6 +350,112 @@ object ConfigProvider {
         parsePrimitive(text, path, name, primitive, escapedDelim, true)
     }
   }
+
+  /**
+   * Describes config keys of a `ConfigProvider` which are not affected by a given transformation. 
+   */
+  sealed trait Constants { self =>
+
+      import Constants._
+
+      def appliesTo(path: String): Boolean
+
+      /**
+       * Creates a `Constants` that must verifies the requirements of this and `that` `Constants.
+       */
+      def &&(that: Constants): Constants =
+        (self, that) match {
+          case (And(l1), And(l2)) => And(l1, l2)
+          case (And(l1), c) => And(l1 ++ List(c))
+          case (c, And(l2)) => And(c :: l2)
+          case (c1, c2) => And(List(c1, c2))
+        }
+
+      /**
+       * Creates a `Constants` that must verifies the requirements of this and `that` `Constants.
+       */
+      def ||(that: Constants): Constants =
+        (self, that) match {
+          case (Or(l1), Or(l2)) => Or(l1, l2)
+          case (Or(l1), c) => Or(l1 ++ List(c))
+          case (c, Or(l2)) => Or(c :: l2)
+          case (c1, c2) => Or(List(c1, c2))
+        }
+
+      /**
+       * Boolean negation of the constants represented 
+       */
+      def not: Constants = Not(self)
+
+    }
+
+    object Constants {
+
+      private lazy val hexSet = (('a' to 'f') ++ ('A' to 'F') ++ ('0' to '9')).toSet
+      private lazy val letterSet = (('a' to 'z') ++ ('A' to 'Z')).toSet
+      private lazy val numberSet = ('0' to '9').toSet
+
+      /**
+       * `Constants` matching paths composed exclusively by letters. 
+       */
+      def onlyLetters(exceptions: Set[Char] = Set.empty): Constants = Only(exceptions ++ letterSet)
+      /**
+       * `Constants` matching paths composed exclusively by hexadecimal characters. 
+       */
+      def onlyHex(exceptions: Set[Char] = Set.empty): Constants = Only(exceptions ++ hexSet)
+      /**
+       * `Constants` matching paths composed exclusively by numbers. 
+       */
+      def onlyNumbers(exceptions: Set[Char] = Set.empty): Constants = Only(exceptions ++ numberSet)
+      /**
+       * `Constants` matching paths composed exclusively by alphanumerical characters. 
+       */
+      def onlyAlphanumerical(exceptions: Set[Char] = Set.empty): Constants = Only(exceptions ++ numberSet ++ letterSet)
+      /**
+       * `Constants` matching paths composed exclusively by `chars`. 
+       */
+      def only(chars: Char*) = Only(Set(chars))
+
+      /**
+       * `Constants` matching paths composed at least by some letter. 
+       */
+      def hasLetters: Constants = Has(letterSet)
+      /**
+       * `Constants` matching paths composed at least by some hexadecimal character. 
+       */
+      def hasHex: Constants = Has(hexSet)
+      /**
+       * `Constants` matching paths composed at least by some number. 
+       */
+      def hasNumbers: Constants = Has(numberSet)
+      /**
+       * `Constants` matching paths composed at least by some alphanumerical character. 
+       */
+      def hasAlphanumerical: Constants = Has(numberSet ++ letterSet)
+      /**
+       * `Constants` matching paths composed at least by a `Char` in `chars. 
+       */
+      def has(chars: Char*) = Has(Set(chars))
+
+      final case class Custom(f: String => Boolean) extends Constants {
+        override def appliesTo(path: String) = f(path)
+      }
+      final case class Only(chars: Set[Char]) extends Constants {
+        override def appliesTo(path: String) = path.forall(chars(_))
+      }
+      final case class Has(chars: Set[Char]) extends Constants {
+        override def appliesTo(path: String) = path.exists(chars(_))
+      }
+      final case object Not(c: Constants) extends Constants {
+        override def appliesTo(path: String) = !c.appliesTo(path)
+      }
+      final case And(c: List[Constants]) extends Constants {
+        override def appliesTo(path: String) = c.forall(_.appliesTo(path))
+      }
+      final case Or(c: List[Constants]) extends Constants {
+        override def appliesTo(path: String) = c.exists(_.appliesTo(path))
+      }
+    }
 
   /**
    * A config provider layer that loads configuration from interactive console

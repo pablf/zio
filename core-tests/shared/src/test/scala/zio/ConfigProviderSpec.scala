@@ -577,6 +577,68 @@ object ConfigProviderSpec extends ZIOBaseSpec {
           result <- configProvider.load(config)
         } yield assertTrue(result == "value")
       } +
+      suite("constants")(
+        test("custom"){
+          val constants = ConfigProvider.Constants.Custom(_.exists(_.isDigit))
+          val configProvider = ConfigProvider.fromMap(Map("UPPERCASE" -> "value1", "constant1" -> "value2")).upperCase(constants)
+          val config1         = Config.string("upperCase")
+          val config2         = Config.string("constant1")
+          for {
+            result1 <- configProvider.load(config1)
+            result2 <- configProvider.load(config2)
+          } yield assertTrue(result1 == "value1" && result2 == "value2")
+        } +
+        test("only"){
+          val constants = ConfigProvider.Constants.onlyLetters()
+          val configProvider = ConfigProvider.fromMap(Map("kebab-case" -> "value1", "CONSTANT" -> "value2")).kebabCase(constants)
+          val config1         = Config.string("kebabCase")
+          val config2         = Config.string("CONSTANT")
+          for {
+            result1 <- configProvider.load(config1)
+            result2 <- configProvider.load(config2)
+          } yield assertTrue(result1 == "value1" && result2 == "value2")
+        } +
+        test("has"){
+          val constants = ConfigProvider.Constants.hasNumbers()
+          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT1" -> "value2")).kebabCase(constants)
+          val config1         = Config.string("snakeCase")
+          val config2         = Config.string("CONSTANT1")
+          for {
+            result1 <- configProvider.load(config1)
+            result2 <- configProvider.load(config2)
+          } yield assertTrue(result1 == "value1" && result2 == "value2")
+        } +
+        test("not"){
+          val constants = ConfigProvider.Constants.hasNumbers().not
+          val configProvider = ConfigProvider.fromMap(Map("snake_case1" -> "value1", "CONSTANT" -> "value2")).kebabCase(constants)
+          val config1         = Config.string("snakeCase1")
+          val config2         = Config.string("CONSTANT")
+          for {
+            result1 <- configProvider.load(config1)
+            result2 <- configProvider.load(config2)
+          } yield assertTrue(result1 == "value1" && result2 == "value2")
+        } +
+        test("and"){
+          val constants = ConfigProvider.Constants.has('1') && ConfigProvider.Constants.has('2')
+          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT21" -> "value2")).kebabCase(constants)
+          val config1         = Config.string("snakeCase")
+          val config2         = Config.string("CONSTANT21")
+          for {
+            result1 <- configProvider.load(config1)
+            result2 <- configProvider.load(config2)
+          } yield assertTrue(result1 == "value1" && result2 == "value2")
+        } +
+        test("or"){
+          val constants = ConfigProvider.Constants.has('1') || ConfigProvider.Constants.has('2')
+          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT2" -> "value2")).kebabCase(constants)
+          val config1         = Config.string("snakeCase")
+          val config2         = Config.string("CONSTANT2")
+          for {
+            result1 <- configProvider.load(config1)
+            result2 <- configProvider.load(config2)
+          } yield assertTrue(result1 == "value1" && result2 == "value2")
+        }
+      ) +
       test("switch") {
         sealed trait Animal
         final case class Cat(name: String) extends Animal
