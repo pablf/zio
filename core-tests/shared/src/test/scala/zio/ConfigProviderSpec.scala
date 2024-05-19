@@ -590,8 +590,8 @@ object ConfigProviderSpec extends ZIOBaseSpec {
         } +
         test("only"){
           val constants = ConfigProvider.Constants.onlyLetters()
-          val configProvider = ConfigProvider.fromMap(Map("kebab-case" -> "value1", "CONSTANT" -> "value2")).kebabCase(constants)
-          val config1         = Config.string("kebabCase")
+          val configProvider = ConfigProvider.fromMap(Map("kebab-case1" -> "value1", "CONSTANT" -> "value2")).kebabCase(constants)
+          val config1         = Config.string("kebabCase1")
           val config2         = Config.string("CONSTANT")
           for {
             result1 <- configProvider.load(config1)
@@ -600,7 +600,7 @@ object ConfigProviderSpec extends ZIOBaseSpec {
         } +
         test("has"){
           val constants = ConfigProvider.Constants.hasNumbers
-          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT1" -> "value2")).kebabCase(constants)
+          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT1" -> "value2")).snakeCase(constants)
           val config1         = Config.string("snakeCase")
           val config2         = Config.string("CONSTANT1")
           for {
@@ -610,7 +610,7 @@ object ConfigProviderSpec extends ZIOBaseSpec {
         } +
         test("not"){
           val constants = ConfigProvider.Constants.hasNumbers.not
-          val configProvider = ConfigProvider.fromMap(Map("snake_case1" -> "value1", "CONSTANT" -> "value2")).kebabCase(constants)
+          val configProvider = ConfigProvider.fromMap(Map("snake_case1" -> "value1", "CONSTANT" -> "value2")).snakeCase(constants)
           val config1         = Config.string("snakeCase1")
           val config2         = Config.string("CONSTANT")
           for {
@@ -620,7 +620,7 @@ object ConfigProviderSpec extends ZIOBaseSpec {
         } +
         test("and"){
           val constants = ConfigProvider.Constants.has('1') && ConfigProvider.Constants.has('2')
-          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT21" -> "value2")).kebabCase(constants)
+          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT21" -> "value2")).snakeCase(constants)
           val config1         = Config.string("snakeCase")
           val config2         = Config.string("CONSTANT21")
           for {
@@ -630,7 +630,7 @@ object ConfigProviderSpec extends ZIOBaseSpec {
         } +
         test("or"){
           val constants = ConfigProvider.Constants.has('1') || ConfigProvider.Constants.has('2')
-          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT2" -> "value2")).kebabCase(constants)
+          val configProvider = ConfigProvider.fromMap(Map("snake_case" -> "value1", "CONSTANT2" -> "value2")).snakeCase(constants)
           val config1         = Config.string("snakeCase")
           val config2         = Config.string("CONSTANT2")
           for {
