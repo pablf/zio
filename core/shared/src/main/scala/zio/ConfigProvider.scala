@@ -68,7 +68,7 @@ trait ConfigProvider {
   final def kebabCase: ConfigProvider =
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase)
 
-  final def kebabCase(criteria: Constants): ConfigProvider =
+  final def kebabCase(criteria: ConfigProvider.Constants): ConfigProvider =
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase, Some(criteria))
 
   /**
@@ -80,7 +80,7 @@ trait ConfigProvider {
   final def lowerCase: ConfigProvider =
     contramapPath(_.toLowerCase)
 
-  final def lowerCase(criteria: Constants): ConfigProvider =
+  final def lowerCase(criteria: ConfigProvider.Constants): ConfigProvider =
     contramapPath(_.toLowerCase, Some(criteria))
 
   /**
@@ -109,7 +109,7 @@ trait ConfigProvider {
   final def snakeCase: ConfigProvider =
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase)
 
-  final def snakeCase(criteria: Constants): ConfigProvider =
+  final def snakeCase(criteria: ConfigProvider.Constants): ConfigProvider =
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase, Some(criteria))
 
   /**
@@ -128,7 +128,7 @@ trait ConfigProvider {
   final def upperCase: ConfigProvider =
     contramapPath(_.toUpperCase)
 
-  final def upperCase(criteria: Constants): ConfigProvider =
+  final def upperCase(criteria: ConfigProvider.Constants): ConfigProvider =
     contramapPath(_.toUpperCase, Some(criteria))
 
   /**
@@ -158,7 +158,7 @@ object ConfigProvider {
 
     def enumerateChildren(path: Chunk[String])(implicit trace: Trace): IO[Config.Error, Set[String]]
 
-    def contramapPath(f: String => String, constants: Option[Constants] = None): Flat =
+    def contramapPath(f: String => String, constants: Option[ConfigProvider.Constants] = None): Flat =
       new Flat {
         override def load[A](path: Chunk[String], config: Config.Primitive[A], split: Boolean)(implicit
           trace: Trace
@@ -365,7 +365,7 @@ object ConfigProvider {
        */
       def &&(that: Constants): Constants =
         (self, that) match {
-          case (And(l1), And(l2)) => And(l1, l2)
+          case (And(l1), And(l2)) => And(l1 ++ l2)
           case (And(l1), c) => And(l1 ++ List(c))
           case (c, And(l2)) => And(c :: l2)
           case (c1, c2) => And(List(c1, c2))
@@ -376,7 +376,7 @@ object ConfigProvider {
        */
       def ||(that: Constants): Constants =
         (self, that) match {
-          case (Or(l1), Or(l2)) => Or(l1, l2)
+          case (Or(l1), Or(l2)) => Or(l1 ++ l2)
           case (Or(l1), c) => Or(l1 ++ List(c))
           case (c, Or(l2)) => Or(c :: l2)
           case (c1, c2) => Or(List(c1, c2))
@@ -414,7 +414,7 @@ object ConfigProvider {
       /**
        * `Constants` matching paths composed exclusively by `chars`. 
        */
-      def only(chars: Char*) = Only(Set(chars))
+      def only(chars: Char*) = Only(chars.toSet)
 
       /**
        * `Constants` matching paths composed at least by some letter. 
@@ -435,7 +435,7 @@ object ConfigProvider {
       /**
        * `Constants` matching paths composed at least by a `Char` in `chars. 
        */
-      def has(chars: Char*) = Has(Set(chars))
+      def has(chars: Char*) = Has(chars.toSet)
 
       final case class Custom(f: String => Boolean) extends Constants {
         override def appliesTo(path: String) = f(path)
