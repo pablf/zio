@@ -2702,7 +2702,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
    * Runs the stream only for its effects. The emitted elements are discarded.
    */
   def runDrain(implicit trace: Trace): ZIO[R, E, Unit] =
-    run(ZSink.drain)
+    run(ZSink.drain).catchAllDefect(_ => ZIO.die(new Throwable("rundrain")))
 
   /**
    * Executes a pure fold over the stream of values - reduces all elements in
