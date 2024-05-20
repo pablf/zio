@@ -46,7 +46,7 @@ trait ConfigProvider {
   final def contramapPath(f: String => String): ConfigProvider =
     ConfigProvider.fromFlat(self.flatten.contramapPath(f))
 
-  final def contramapPath(f: String => String, constants: Option[ConfigProvider.Constants]): ConfigProvider =
+  final def contramapPath(f: String => String, constants: ConfigProvider.Constants): ConfigProvider =
     ConfigProvider.fromFlat(self.flatten.contramapPath(f, constants))
 
   /**
@@ -161,9 +161,26 @@ object ConfigProvider {
 
     def enumerateChildren(path: Chunk[String])(implicit trace: Trace): IO[Config.Error, Set[String]]
 
-    def contramapPath(f: String => String): Flat = contramapPath(f, None)
+    def contramapPath(f: String => String): Flat =
+      new Flat {
+        override def load[A](path: Chunk[String], config: Config.Primitive[A], split: Boolean)(implicit
+          trace: Trace
+        ): IO[Config.Error, Chunk[A]] =
+          self.load(path, config, split)
 
-    def contramapPath(f: String => String, constants: Option[ConfigProvider.Constants]): Flat =
+        def enumerateChildren(path: Chunk[String])(implicit trace: Trace): IO[Config.Error, Set[String]] =
+          self.enumerateChildren(path)
+
+        def load[A](path: Chunk[String], config: Config.Primitive[A])(implicit
+          trace: Trace
+        ): IO[Config.Error, Chunk[A]] =
+          load(path, config, true)
+
+        override def patch: PathPatch =
+          self.patch.mapName(f)
+      }
+
+    def contramapPath(f: String => String, constants: ConfigProvider.Constants): Flat =
       new Flat {
         override def load[A](path: Chunk[String], config: Config.Primitive[A], split: Boolean)(implicit
           trace: Trace
