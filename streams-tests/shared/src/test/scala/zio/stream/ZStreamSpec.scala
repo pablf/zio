@@ -3825,7 +3825,7 @@ object ZStreamSpec extends ZIOBaseSpec {
                 .debounce(100.millis)
             //val stream2: UStream[Nothing] = ZStream.empty
 
-            val effectAll = stream.runDrain
+            val effectAll = stream1.runDrain
             for
               _ <- effectAll/*
                 .catchAllDefect(ZIO.fail(_))
