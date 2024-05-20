@@ -892,8 +892,8 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
       for {
         input      <- SingleProducerAsyncInput.make[InErr1, InElem1, InDone1]
         queueReader = ZChannel.fromInput(input)
-        pullL      <- (queueReader >>> self).toPullIn(scope).catchAllDefect(_ => ZIO.fail(new Throwable("pullL")))
-        pullR      <- (queueReader >>> that).toPullIn(scope).catchAllDefect(_ => ZIO.fail(new Throwable("pullR")))
+        pullL      <- (queueReader >>> self).toPullIn(scope).catchAllDefect(_ => ZIO.die(new Throwable("pullL")))
+        pullR      <- (queueReader >>> that).toPullIn(scope).catchAllDefect(_ => ZIO.die(new Throwable("pullR")))
       } yield {
         def handleSide[Err, Done, Err2, Done2](
           exit: Exit[Err, Either[Done, OutElem1]],
@@ -927,21 +927,21 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
                 ZChannel.write(elem) *> ZChannel.fromZIO(pull.forkIn(scope)).flatMap { leftFiber =>
                   go(both(leftFiber, fiber))
                 }
-              }.catchAllDefect(_ => ZIO.fail(new Throwable("1")))
+              }.catchAllDefect(_ => ZIO.die(new Throwable("1")))
 
             case Exit.Success(Left(z)) =>
-              onDecision(done(Exit.succeed(z))).catchAllDefect(_ => ZIO.fail(new Throwable("2")))
+              onDecision(done(Exit.succeed(z))).catchAllDefect(_ => ZIO.die(new Throwable("2")))
 
             case Exit.Failure(failure) =>
-              onDecision(done(Exit.failCause(failure))).catchAllDefect(_ => ZIO.fail(new Throwable("3")))
+              onDecision(done(Exit.failCause(failure))).catchAllDefect(_ => ZIO.die(new Throwable("3")))
           }
-        }.catchAllDefect(_ => ZIO.fail(new Throwable("ondeicioson")))
+        }.catchAllDefect(_ => ZIO.die(new Throwable("ondeicioson")))
 
         def go(state: MergeState): ZChannel[Env1, Any, Any, Any, OutErr3, OutElem1, OutDone3] =
           state match {
             case BothRunning(leftFiber, rightFiber) =>
-              val lj: ZIO[Env1, OutErr, Either[OutDone, OutElem1]]   = leftFiber.join.interruptible.catchAllDefect(_ => ZIO.fail(new Throwable("lj")))
-              val rj: ZIO[Env1, OutErr2, Either[OutDone2, OutElem1]] = rightFiber.join.interruptible.catchAllDefect(_ => ZIO.fail(new Throwable("rj")))
+              val lj: ZIO[Env1, OutErr, Either[OutDone, OutElem1]]   = leftFiber.join.interruptible.catchAllDefect(_ => ZIO.die(new Throwable("lj")))
+              val rj: ZIO[Env1, OutErr2, Either[OutDone2, OutElem1]] = rightFiber.join.interruptible.catchAllDefect(_ => ZIO.die(new Throwable("rj")))
 
               ZChannel.unwrap {
                 lj.raceWith(rj)(
@@ -986,7 +986,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           }
 
         ZChannel
-          .fromZIO(pullL.forkIn(scope).zipWith(pullR.forkIn(scope))(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.fail(new Throwable("forks"))))
+          .fromZIO(pullL.forkIn(scope).zipWith(pullR.forkIn(scope))(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.die(new Throwable("forks"))))
           .flatMap(go)
           .embedInput(input)
       }
