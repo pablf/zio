@@ -766,17 +766,17 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
                         case (Exit.Success(a), current) =>
                           ZIO.succeed(ZChannel.write(a) *> consumer(Current(current)))
                         case (Exit.Failure(cause), current) =>
-                          current.interrupt as ZChannel.refailCause(cause)
+                          current.interrupt.catchAllDefect(_ => ZIO.die(new Throwable("A1"))) as ZChannel.refailCause(cause)
                       },
                       {
                         case (Exit.Success(Emit(last)), previous) =>
-                          previous.interrupt *> enqueue(last)
+                          previous.interrupt.catchAllDefect(_ => ZIO.die(new Throwable("A2"))) *> enqueue(last)
                         case (Exit.Success(Halt(cause)), previous) =>
-                          previous.interrupt as ZChannel.refailCause(cause)
+                          previous.interrupt.catchAllDefect(_ => ZIO.die(new Throwable("A3"))) as ZChannel.refailCause(cause)
                         case (Exit.Success(End(_)), previous) =>
                           previous.join.map(ZChannel.write(_) *> ZChannel.unit)
                         case (Exit.Failure(cause), previous) =>
-                          previous.interrupt as ZChannel.refailCause(cause)
+                          previous.interrupt.catchAllDefect(_ => ZIO.die(new Throwable("A4"))) as ZChannel.refailCause(cause)
                       }
                     )
               }
