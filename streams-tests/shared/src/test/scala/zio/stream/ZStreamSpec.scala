@@ -3816,7 +3816,7 @@ object ZStreamSpec extends ZIOBaseSpec {
               _ <- zio.test.Live.live(effectAll.catchAllDefect(_ => ZIO.die(new Throwable("in test")))).catchAllDefect(_ => ZIO.die(new Throwable("out")))/*
                 .catchAllDefect(ZIO.fail(_))
                 .tapErrorCause(ZIO.logErrorCause("mmm sweet", _))*/
-              _ <- TestClock.adjust(1.second)
+              _ <- TestClock.adjust(1.second).catchAllDefect(_ => ZIO.die(new Throwable("adjust")))
             yield assertTrue(true)
           }@@ TestAspect.timeout(3.seconds),
           test("merge, debounce 2") {
