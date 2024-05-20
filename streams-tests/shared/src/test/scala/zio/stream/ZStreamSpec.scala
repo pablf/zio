@@ -3813,9 +3813,10 @@ object ZStreamSpec extends ZIOBaseSpec {
 
             val effectAll = (stream1 merge stream2).runDrain
             for
-              _ <- effectAll
+              _ <- effectAll/*
                 .catchAllDefect(ZIO.fail(_))
-                .tapErrorCause(ZIO.logErrorCause("mmm sweet", _))
+                .tapErrorCause(ZIO.logErrorCause("mmm sweet", _))*/
+              _ <- TestClock.adjust(1.second)
             yield assertTrue(true)
           },
         ),
