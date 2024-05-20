@@ -3818,7 +3818,21 @@ object ZStreamSpec extends ZIOBaseSpec {
                 .tapErrorCause(ZIO.logErrorCause("mmm sweet", _))*/
               _ <- TestClock.adjust(1.second)
             yield assertTrue(true)
-          },
+          }@@ TestAspect.timeout(3.seconds),
+          test("merge, debounce 1") {
+            val stream1: UStream[Int | Unit] =
+              (ZStream.succeed(0) ++ ZStream.fromZIO(ZIO.sleep(200.millis)))
+                .debounce(100.millis)
+            //val stream2: UStream[Nothing] = ZStream.empty
+
+            val effectAll = stream.runDrain
+            for
+              _ <- effectAll/*
+                .catchAllDefect(ZIO.fail(_))
+                .tapErrorCause(ZIO.logErrorCause("mmm sweet", _))*/
+              _ <- TestClock.adjust(1.second)
+            yield assertTrue(true)
+          }@@ TestAspect.timeout(3.seconds),
         ),
         suite("throttleEnforce")(
           test("free elements") {
