@@ -778,7 +778,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
                         case (Exit.Failure(cause), previous) =>
                           previous.interrupt.catchAllDefect(_ => ZIO.die(new Throwable("A4"))) as ZChannel.refailCause(cause)
                       }
-                    )
+                    ).catchAllDefect(_ => ZIO.die(new Throwable("A5")))
               }
             )
 
