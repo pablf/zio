@@ -3819,7 +3819,7 @@ object ZStreamSpec extends ZIOBaseSpec {
               _ <- TestClock.adjust(1.second)
             yield assertTrue(true)
           }@@ TestAspect.timeout(3.seconds),
-          test("merge, debounce 1") {
+          test("merge, debounce 2") {
             val stream1: UStream[Int | Unit] =
               (ZStream.succeed(0) ++ ZStream.fromZIO(ZIO.sleep(200.millis)))
                 .debounce(100.millis)

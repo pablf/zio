@@ -785,7 +785,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
           ZStream.scopedWith(scope => (self.channel >>> producer).runIn(scope).forkIn(scope)) *>
             new ZStream(consumer(NotStarted))
         }
-      }
+      }.catchAllDefect(_ => ZIO.fail(new Throwable("transplant")))
     )
   }
 
