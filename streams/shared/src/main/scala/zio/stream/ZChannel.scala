@@ -1221,7 +1221,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         done <- restore(channelPromise.await)
       } yield done
     }
-  }
+  }.catchAllDefect(_ => ZIO.die(new Throwable("runIn")))
 
   /**
    * Run the channel until it finishes with a done value or fails with an error.
