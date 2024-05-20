@@ -946,14 +946,14 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
               ZChannel.unwrap {
                 lj.raceWith(rj)(
                   (leftEx, rf) =>
-                    rf.interrupt *>
+                    rf.interrupt.catchAllDefect(ZIO.unit) *>
                       handleSide(leftEx, rightFiber, pullL)(
                         leftDone,
                         BothRunning(_, _),
                         LeftDone(_)
                       ),
                   (rightEx, lf) =>
-                    lf.interrupt *>
+                    lf.interrupt.catchAllDefect(ZIO.unit) *>
                       handleSide(rightEx, leftFiber, pullR)(
                         rightDone,
                         (l, r) => BothRunning(r, l),
