@@ -72,7 +72,7 @@ trait ConfigProvider {
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase)
 
   final def kebabCase(criteria: ConfigProvider.Constants): ConfigProvider =
-    contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase, Some(criteria))
+    contramapPath(_.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase, criteria)
 
   /**
    * Returns a new config provider that will automatically convert all property
@@ -84,7 +84,7 @@ trait ConfigProvider {
     contramapPath(_.toLowerCase)
 
   final def lowerCase(criteria: ConfigProvider.Constants): ConfigProvider =
-    contramapPath(_.toLowerCase, Some(criteria))
+    contramapPath(_.toLowerCase, criteria)
 
   /**
    * Returns a new config provider that will automatically nest all
@@ -113,7 +113,7 @@ trait ConfigProvider {
     contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase)
 
   final def snakeCase(criteria: ConfigProvider.Constants): ConfigProvider =
-    contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase, Some(criteria))
+    contramapPath(_.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase, criteria)
 
   /**
    * Returns a new config provider that will automatically unnest all
@@ -132,7 +132,7 @@ trait ConfigProvider {
     contramapPath(_.toUpperCase)
 
   final def upperCase(criteria: ConfigProvider.Constants): ConfigProvider =
-    contramapPath(_.toUpperCase, Some(criteria))
+    contramapPath(_.toUpperCase, criteria)
 
   /**
    * Returns a new config provider that transforms the config provider with the
