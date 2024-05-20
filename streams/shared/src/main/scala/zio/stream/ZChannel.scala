@@ -889,7 +889,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
     import ZChannel.MergeState._
 
     def m(scope: Scope) =
-      for {
+      (for {
         input      <- SingleProducerAsyncInput.make[InErr1, InElem1, InDone1]
         queueReader = ZChannel.fromInput(input)
         pullL      <- (queueReader >>> self).toPullIn(scope).catchAllDefect(_ => ZIO.die(new Throwable("pullL")))
@@ -989,7 +989,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           .fromZIO(pullL.forkIn(scope).zipWith(pullR.forkIn(scope))(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.die(new Throwable("forks"))))
           .flatMap(go)
           .embedInput(input)
-      }.catchAllDefect(_ => ZIO.die(new Throwable("merge")))
+      }).catchAllDefect(_ => ZIO.die(new Throwable("merge")))
 
     ZChannel.unwrapScopedWith(m)
   }
