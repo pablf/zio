@@ -892,8 +892,8 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
       (for {
         input      <- SingleProducerAsyncInput.make[InErr1, InElem1, InDone1]
         queueReader = ZChannel.fromInput(input)
-        pullL      <- (queueReader >>> self).toPullIn(scope).catchAllDefect(_ => ZIO.die(new Throwable("pullL")))
-        pullR      <- (queueReader >>> that).toPullIn(scope).catchAllDefect(_ => ZIO.die(new Throwable("pullR")))
+        pullL      <- (queueReader >>> self).toPullIn(scope)
+        pullR      <- (queueReader >>> that).toPullIn(scope)
       } yield {
         def handleSide[Err, Done, Err2, Done2](
           exit: Exit[Err, Either[Done, OutElem1]],
@@ -927,33 +927,33 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
                 ZChannel.write(elem) *> ZChannel.fromZIO(pull.forkIn(scope)).flatMap { leftFiber =>
                   go(both(leftFiber, fiber))
                 }
-              }.catchAllDefect(_ => ZIO.die(new Throwable("1")))
+              }
 
             case Exit.Success(Left(z)) =>
-              onDecision(done(Exit.succeed(z))).catchAllDefect(_ => ZIO.die(new Throwable("2")))
+              onDecision(done(Exit.succeed(z)))
 
             case Exit.Failure(failure) =>
-              onDecision(done(Exit.failCause(failure))).catchAllDefect(_ => ZIO.die(new Throwable("3")))
+              onDecision(done(Exit.failCause(failure)))
           }
-        }.catchAllDefect(_ => ZIO.die(new Throwable("ondeicioson")))
+        }
 
         def go(state: MergeState): ZChannel[Env1, Any, Any, Any, OutErr3, OutElem1, OutDone3] =
           state match {
             case BothRunning(leftFiber, rightFiber) =>
-              val lj: ZIO[Env1, OutErr, Either[OutDone, OutElem1]]   = leftFiber.join.interruptible.catchAllDefect(_ => ZIO.die(new Throwable("lj")))
-              val rj: ZIO[Env1, OutErr2, Either[OutDone2, OutElem1]] = rightFiber.join.interruptible.catchAllDefect(_ => ZIO.die(new Throwable("rj")))
+              val lj: ZIO[Env1, OutErr, Either[OutDone, OutElem1]]   = leftFiber.join.interruptible
+              val rj: ZIO[Env1, OutErr2, Either[OutDone2, OutElem1]] = rightFiber.join.interruptible
 
               ZChannel.unwrap {
                 lj.raceWith(rj)(
                   (leftEx, rf) =>
-                    rf.interrupt.catchAllDefect(_ => ZIO.unit) *>
+                    rf.interrupt.absorb.orDie *>
                       handleSide(leftEx, rightFiber, pullL)(
                         leftDone,
                         BothRunning(_, _),
                         LeftDone(_)
                       ),
                   (rightEx, lf) =>
-                    lf.interrupt.catchAllDefect(_ => ZIO.unit) *>
+                    lf.interrupt.absorb.orDie *>
                       handleSide(rightEx, leftFiber, pullR)(
                         rightDone,
                         (l, r) => BothRunning(r, l),
@@ -986,10 +986,10 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           }
 
         ZChannel
-          .fromZIO(pullL.forkDaemon.zipWith(pullR.forkDaemon)(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.die(new Throwable("forks"))))
+          .fromZIO(pullL.forkIn(scope).zipWith(pullR.forkIn(scope))(BothRunning(_, _): MergeState))
           .flatMap(go)
           .embedInput(input)
-      }).absorb.orDie
+      })
 
     ZChannel.unwrapScopedWith(m)
   }
@@ -1211,7 +1211,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         child          <- parent.fork
         channelPromise <- Promise.make[OutErr, OutDone]
         scopePromise   <- Promise.make[Nothing, Unit]
-        fiber          <- restore(run(channelPromise, scopePromise, child)).forkIn(scope) // ??? change to forkDaemon
+        fiber          <- restore(run(channelPromise, scopePromise, child)).forkDaemon
         _ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
                  if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
