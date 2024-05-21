@@ -909,7 +909,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           ): ZIO[Any, Nothing, ZChannel[Env1, Any, Any, Any, OutErr3, OutElem1, OutDone3]] =
             decision match {
               case ZChannel.MergeDecision.Done(zio) =>
-                ZIO.succeed(ZChannel.fromZIO(fiber.interrupt.absorb.ignore *> zio))
+                ZIO.succeed(ZChannel.fromZIO(fiber.interrupt *> zio))
               case ZChannel.MergeDecision.Await(f) =>
                 fiber.await.map {
                   case Exit.Success(Right(elem)) =>
@@ -946,15 +946,15 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
               ZChannel.unwrap {
                 lj.raceWith(rj)(
                   (leftEx, rf) =>
-                    rf.interrupt.absorb.ignore *>
-                      handleSide(leftEx, rightFiber, pullL)(
+                    //rf.interrupt.absorb.ignore *>
+                      handleSide(leftEx, rf, pullL)(
                         leftDone,
                         BothRunning(_, _),
                         LeftDone(_)
                       ),
                   (rightEx, lf) =>
-                    lf.interrupt.absorb.ignore *>
-                      handleSide(rightEx, leftFiber, pullR)(
+                    //lf.interrupt.absorb.ignore *>
+                      handleSide(rightEx, lf, pullR)(
                         rightDone,
                         (l, r) => BothRunning(r, l),
                         RightDone(_)
