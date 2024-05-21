@@ -989,7 +989,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           .fromZIO(pullL.forkIn(scope).zipWith(pullR.forkIn(scope))(BothRunning(_, _): MergeState))
           .flatMap(go)
           .embedInput(input)
-      }).absorb.orDie
+      }).absorb.mapError(_ => new Throwable("upa1")).orDie
 
     ZChannel.unwrapScopedWith(m)
   }
