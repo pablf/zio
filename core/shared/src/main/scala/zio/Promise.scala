@@ -66,7 +66,7 @@ final class Promise[E, A] private (
 
                 val newState = oldState match {
                   case Pending(joiners) =>
-                    result = Left(interruptJoiner(k))
+                    result = Left(interruptJoiner(k).absorb.mapError(_ => new Throwable("f3:pending")).orDie)
 
                     Pending(k :: joiners)
                   case s @ Done(value) =>
