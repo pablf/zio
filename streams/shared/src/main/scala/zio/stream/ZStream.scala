@@ -718,7 +718,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
         } yield {
           def enqueue(last: Chunk[A]) =
             for {
-              f <- Clock.sleep(d).as(last).forkIn(scope)
+              f <- ZIO.unit.as(last).forkIn(scope)//Clock.sleep(d).as(last).forkIn(scope)
             } yield consumer(Previous(f))
 
           lazy val producer: ZChannel[R, E, Chunk[A], Any, E, Nothing, Any] =
@@ -750,7 +750,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
                     case HandoffSignal.End(_)      => ZChannel.unit
                   }
                 case Previous(fiber) =>
-                  fiber.join
+                  fiber.join.interruptible
                     .raceWith[R, E, E, HandoffSignal[E, A], ZChannel[
                       R,
                       Any,
