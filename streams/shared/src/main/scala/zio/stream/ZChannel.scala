@@ -1214,10 +1214,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         child          <- parent.fork
         channelPromise <- Promise.make[OutErr, OutDone]
         scopePromise   <- Promise.make[Nothing, Unit]
-        fiber          <- restore(run(channelPromise, scopePromise, child)).forkDaemon.either.absorb.mapError(_ => new Throwable("f")).orDie.flatMap {
-    case Right(z) => ZIO.succeed(z)
-    case Left(z) => ZIO.fail(z)
-  }
+        fiber          <- restore(run(channelPromise, scopePromise, child)).forkDaemon.absorb.mapError(_ => new Throwable("f")).orDie
         _ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
                  if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
