@@ -1168,7 +1168,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
   final def runIn(
     scope: => Scope
   )(implicit ev1: Any <:< InElem, ev2: OutElem <:< Nothing, trace: Trace): ZIO[Env, OutErr, OutDone] = {
-    def run(channelPromise: Promise[OutErr, OutDone], scopePromise: Promise[Nothing, Unit], scope: Scope) = ZIO
+    def run(channelPromise: Promise[OutErr, OutDone], scope: Scope) = ZIO
       .acquireReleaseExitWith(
         ZIO.succeed(
           new ChannelExecutor[Env, InErr, InElem, InDone, OutErr, OutElem, OutDone](
@@ -1201,7 +1201,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
             }
 
           interpret(exec.run().asInstanceOf[ChannelState[Env, OutErr]])
-            .intoPromise(channelPromise) *> channelPromise.await <* scopePromise.await
+            .intoPromise(channelPromise)
         }
       }
 
@@ -1210,18 +1210,18 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         parent         <- ZIO.succeed(scope)
         child          <- parent.fork
         channelPromise <- Promise.make[OutErr, OutDone]
-        scopePromise   <- Promise.make[Nothing, Unit]
-        fiber          <- restore(run(channelPromise, scopePromise, child)).forkIn(parent)
+        //scopePromise   <- Promise.make[Nothing, Unit]
+        fiber          <- restore(run(channelPromise, child)).forkIn(parent)
         _ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
-                 if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
-                 else scopePromise.succeed(()) *> fiber.interrupt *> fiber.inheritAll
+                 if (isDone) fiber.await *> fiber.inheritAll
+                 else fiber.interrupt *> fiber.inheritAll
                }
              }
-        done <- restore(channelPromise.await.either.absorb.mapError(_ => new Throwable("f3")).orDie.flatMap {
+        done <- restore(channelPromise.await).either.absorb.mapError(_ => new Throwable("f3")).orDie.flatMap {
     case Right(z) => ZIO.succeed(z)
     case Left(z) => ZIO.fail(z)
-  })
+  }
       } yield done
     }
   }
