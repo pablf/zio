@@ -711,14 +711,14 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
     import HandoffSignal._
 
     ZStream.unwrapScopedWith { scope =>
-      ZIO.transplant { grafter =>
+      //ZIO.transplant { grafter =>
         for {
           d       <- ZIO.succeed(d)
           handoff <- ZStream.Handoff.make[HandoffSignal[E, A]]
         } yield {
           def enqueue(last: Chunk[A]) =
             for {
-              f <- grafter(Clock.sleep(d).as(last).forkIn(scope))
+              f <- Clock.sleep(d).as(last).forkIn(scope)
             } yield consumer(Previous(f))
 
           lazy val producer: ZChannel[R, E, Chunk[A], Any, E, Nothing, Any] =
@@ -784,7 +784,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
 
           ZStream.fromZIO((self.channel >>> producer).runIn(scope).forkIn(scope)) *>
             new ZStream(consumer(NotStarted))
-        }
+        //}
       }.catchAllDefect(_ => ZIO.die(new Throwable("transplant")))
     }
   }
