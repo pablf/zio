@@ -986,7 +986,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           }
 
         ZChannel
-          .fromZIO(pullL.forkIn(scope).zipWith(pullR.forkIn(scope))(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.die(new Throwable("forks"))))
+          .fromZIO(pullL.forkDaemon.zipWith(pullR.forkDaemon)(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.die(new Throwable("forks"))))
           .flatMap(go)
           .embedInput(input)
       }).catchAllDefect(_ => ZIO.die(new Throwable("merge")))
