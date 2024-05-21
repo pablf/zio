@@ -1218,7 +1218,8 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
                  else fiber.interrupt *> fiber.inheritAll
                }
              }
-        done <- restore(channelPromise.await)
+        done <- fiber.join
+        //done <- restore(channelPromise.await)
       } yield done
     }
   }
