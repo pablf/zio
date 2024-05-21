@@ -1221,7 +1221,10 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         done <- restore(channelPromise.await)
       } yield done
     }
-  }.absorb.mapError(_ => new Throwable("o")).orDie
+  }.either.absorb.mapError(_ => new Throwable("o")).orDie.flatMap {
+    case Right(z) => ZIO.succeed(z)
+    case Left(z) => ZIO.fail(z)
+  }
 
   /**
    * Run the channel until it finishes with a done value or fails with an error.
