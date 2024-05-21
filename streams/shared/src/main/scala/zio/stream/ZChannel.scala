@@ -1203,7 +1203,10 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           interpret(exec.run().asInstanceOf[ChannelState[Env, OutErr]])
             .intoPromise(channelPromise) *> channelPromise.await <* scopePromise.await
         }
-      }
+      }.either.absorb.mapError(_ => new Throwable("acquire")).orDie.flatMap {
+    case Right(z) => ZIO.succeed(z)
+    case Left(z) => ZIO.fail(z)
+  }
 
     ZIO.uninterruptibleMask { restore =>
       for {
@@ -1211,19 +1214,25 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         child          <- parent.fork
         channelPromise <- Promise.make[OutErr, OutDone]
         scopePromise   <- Promise.make[Nothing, Unit]
-        fiber          <- restore(run(channelPromise, scopePromise, child)).forkDaemon
+        fiber          <- restore(run(channelPromise, scopePromise, child)).forkDaemon.either.absorb.mapError(_ => new Throwable("f")).orDie.flatMap {
+    case Right(z) => ZIO.succeed(z)
+    case Left(z) => ZIO.fail(z)
+  }
         _ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
                  if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
                  else scopePromise.succeed(()) *> fiber.interrupt.absorb.mapError(_ => new Throwable("upa2")).orDie *> fiber.inheritAll
                }
-             }
-        done <- restore(channelPromise.await)
-      } yield done
-    }.either.absorb.mapError(_ => new Throwable("o")).orDie.flatMap {
+             }.either.absorb.mapError(_ => new Throwable("f2")).orDie.flatMap {
     case Right(z) => ZIO.succeed(z)
     case Left(z) => ZIO.fail(z)
   }
+        done <- restore(channelPromise.await).either.absorb.mapError(_ => new Throwable("f3")).orDie.flatMap {
+    case Right(z) => ZIO.succeed(z)
+    case Left(z) => ZIO.fail(z)
+  }
+      } yield done
+    }
   }
 
   /**
