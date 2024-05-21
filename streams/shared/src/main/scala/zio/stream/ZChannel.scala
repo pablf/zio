@@ -989,7 +989,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
           .fromZIO(pullL.forkDaemon.zipWith(pullR.forkDaemon)(BothRunning(_, _): MergeState).catchAllDefect(_ => ZIO.die(new Throwable("forks"))))
           .flatMap(go)
           .embedInput(input)
-      }).catchAllDefect(_ => ZIO.die(new Throwable("merge")))
+      }).absorb.orDie
 
     ZChannel.unwrapScopedWith(m)
   }
