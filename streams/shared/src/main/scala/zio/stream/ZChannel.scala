@@ -1211,7 +1211,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         child          <- parent.fork
         channelPromise <- Promise.make[OutErr, OutDone]
         scopePromise   <- Promise.make[Nothing, Unit]
-        fiber          <- restore(run(channelPromise, scopePromise, child)).forkDaemon
+        fiber          <- restore(run(channelPromise, scopePromise, child)).forkIn(scope) // ??? change to forkDaemon
         _ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
                  if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
