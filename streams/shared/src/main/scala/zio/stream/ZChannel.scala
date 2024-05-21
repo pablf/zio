@@ -1218,10 +1218,10 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
                  else scopePromise.succeed(()) *> fiber.interrupt *> fiber.inheritAll
                }
              }
-        done <- restore(channelPromise.await).either.absorb.mapError(_ => new Throwable("f3")).orDie.flatMap {
+        done <- restore(channelPromise.await.either.absorb.mapError(_ => new Throwable("f3")).orDie.flatMap {
     case Right(z) => ZIO.succeed(z)
     case Left(z) => ZIO.fail(z)
-  }
+  })
       } yield done
     }
   }
