@@ -1168,7 +1168,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
   final def runIn(
     scope: => Scope
   )(implicit ev1: Any <:< InElem, ev2: OutElem <:< Nothing, trace: Trace): ZIO[Env, OutErr, OutDone] = {
-    def run(channelPromise: Promise[OutErr, OutDone], scope: Scope) = ZIO
+    def run(scope: Scope) = ZIO
       .acquireReleaseExitWith(
         ZIO.succeed(
           new ChannelExecutor[Env, InErr, InElem, InDone, OutErr, OutElem, OutDone](
@@ -1201,7 +1201,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
             }
 
           interpret(exec.run().asInstanceOf[ChannelState[Env, OutErr]])
-            .intoPromise(channelPromise) *> channelPromise.await
+            //.intoPromise(channelPromise) *> channelPromise.await
         }
       }
 
@@ -1209,16 +1209,17 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
       for {
         parent         <- ZIO.succeed(scope)
         child          <- parent.fork
-        channelPromise <- Promise.make[OutErr, OutDone]
+        //channelPromise <- Promise.make[OutErr, OutDone]
         //scopePromise   <- Promise.make[Nothing, Unit]
-        fiber          <- restore(run(channelPromise, child)).forkIn(parent)
-        _ <- parent.addFinalizer {
+        //fiber          <- restore(run(channelPromise, child)).forkIn(parent)
+        fiber          <- restore(run(child)).forkIn(parent)
+        /*_ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
                  if (isDone) fiber.await *> fiber.inheritAll
                  else fiber.interrupt *> fiber.inheritAll
                }
-             }
-        done <- fiber.join
+             }*/
+        done <- fiber.join <* fiber.inheritAll
         //done <- restore(channelPromise.await)
       } yield done
     }
