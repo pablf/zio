@@ -51,7 +51,10 @@ final class Promise[E, A] private (
     ZIO.suspendSucceed {
       state.get match {
         case Done(value) =>
-          value
+          value.either.absorb.mapError(_ => new Throwable("f3:done")).orDie.flatMap {
+    case Right(z) => ZIO.succeed(z)
+    case Left(z) => ZIO.fail(z)
+  }
         case _ =>
           ZIO.asyncInterrupt[Any, E, A](
             k => {
@@ -78,7 +81,10 @@ final class Promise[E, A] private (
               result
             },
             blockingOn
-          )
+          ).either.absorb.mapError(_ => new Throwable("f3:pending")).orDie.flatMap {
+    case Right(z) => ZIO.succeed(z)
+    case Left(z) => ZIO.fail(z)
+  }
       }
     }
 
