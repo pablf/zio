@@ -1201,7 +1201,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
             }
 
           interpret(exec.run().asInstanceOf[ChannelState[Env, OutErr]])
-            .intoPromise(channelPromise)
+            .intoPromise(channelPromise) *> channelPromise.await
         }
       }
 
