@@ -4645,35 +4645,6 @@ object ZStream extends ZStreamPlatformSpecificConstructors {
         )
     }
 
-  case class Refe[E1, A]() {
-    def offer(c: Take[E1, A]): ZIO[Any, Nothing, Boolean] =
-    
-    def shutdown: ZIO[Any, Nothing, Unit]
-
-    def awaitShutdown: ZIO[Any, Nothing, Unit]
-
-  }
-
-  /**
-   * Creates a stream from a queue of values
-   *
-   * @param maxChunkSize
-   *   Maximum number of queued elements to put in one chunk in the stream
-   */
-  def fromRefe[E1, A](
-    queue: => Refe[E1, A],
-  )(implicit trace: Trace): ZStream[Any, Nothing, O] =
-    repeatZIOChunkOption {
-      queue
-        .takeBetween(1, maxChunkSize)
-        .catchAllCause(c =>
-          queue.isShutdown.flatMap { down =>
-            if (down && c.isInterrupted) Pull.end
-            else Pull.failCause(c)
-          }
-        )
-    }
-
   /**
    * Creates a stream from a queue of values. The queue will be shutdown once
    * the stream is closed.
