@@ -718,7 +718,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
         } yield {
           def enqueue(last: Chunk[A]) =
             for {
-              f <- Clock.sleep(d).as(last).forkIn(scope)
+              f <- Clock.sleep(d).as(last).forkDaemon//In(scope)
             } yield consumer(Previous(f))
 
           lazy val producer: ZChannel[R, E, Chunk[A], Any, E, Nothing, Any] =
@@ -782,7 +782,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
               }
             )
 
-          ZStream.fromZIO((self.channel >>> producer).runIn(scope).forkIn(scope)) *>
+          ZStream.fromZIO((self.channel >>> producer).runIn(scope).forkDaemon) *>
             new ZStream(consumer(NotStarted))
         //}
       }
