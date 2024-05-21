@@ -1220,14 +1220,8 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
                  if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
                  else scopePromise.succeed(()) *> fiber.interrupt.absorb.mapError(_ => new Throwable("upa2")).orDie *> fiber.inheritAll
                }
-             }.either.absorb.mapError(_ => new Throwable("f2")).orDie.flatMap {
-    case Right(z) => ZIO.succeed(z)
-    case Left(z) => ZIO.fail(z)
-  }
-        done <- restore(channelPromise.await).either.absorb.mapError(_ => new Throwable("f3")).orDie.flatMap {
-    case Right(z) => ZIO.succeed(z)
-    case Left(z) => ZIO.fail(z)
-  }
+             }.absorb.mapError(_ => new Throwable("f2")).orDie
+        done <- restore(channelPromise.await).absorb.mapError(_ => new Throwable("f3")).orDie
       } yield done
     }
   }
