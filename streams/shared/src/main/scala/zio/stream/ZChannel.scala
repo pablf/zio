@@ -1215,7 +1215,7 @@ sealed trait ZChannel[-Env, -InErr, -InElem, -InDone, +OutErr, +OutElem, +OutDon
         _ <- parent.addFinalizer {
                channelPromise.isDone.flatMap { isDone =>
                  if (isDone) scopePromise.succeed(()) *> fiber.await *> fiber.inheritAll
-                 else scopePromise.succeed(()) *> fiber.interrupt *> fiber.inheritAll
+                 else scopePromise.succeed(()) *> fiber.interrupt.absorb.mapError(_ => new Throwable("upa2")).orDie *> fiber.inheritAll
                }
              }
         done <- restore(channelPromise.await)
