@@ -3302,7 +3302,7 @@ final class ZStream[-R, +E, +A] private (val channel: ZChannel[R, Any, Any, Any,
         new ZStream(
           ZChannel.fromZIO(promise.await) *> self.channel
             .pipeTo(loop)
-            .ensuring(queue.offer(Take.end) *> queue.awaitShutdown)// *> ZChannel.unit
+            .ensuring(queue.offer(Take.end).forkIn(scope) *> queue.awaitShutdown)// *> ZChannel.unit
         )
           .merge(ZStream.execute((promise.succeed(()) *> right.run(sink)).ensuring(queue.shutdown)), HaltStrategy.Both)
 
