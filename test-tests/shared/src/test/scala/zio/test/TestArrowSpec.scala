@@ -101,13 +101,13 @@ object TestArrowSpec extends ZIOBaseSpec {
         test("change None genFailureDetails") {
           val genFailureDetails = Some(GenFailureDetails(None, None, 1))
           val meta = createMeta(genFailureDetails = None)
-          assertTrue(meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails == None && meta.meta(genFailureDetails = genFailureDetails).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations0 == 1).getOrElse(false))
+          assertTrue(meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails == None && meta.meta(genFailureDetails = genFailureDetails).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations == 1).getOrElse(false))
         },
         test("change Some genFailureDetails") {
           val genFailureDetails1 = Some(GenFailureDetails(None, None, 1))
           val genFailureDetails2 = Some(GenFailureDetails(None, None, 2))
           val meta = createMeta(genFailureDetails = genFailureDetails1)
-          assertTrue(meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations0 == 1).getOrElse(false) && meta.meta(genFailureDetails = genFailureDetails2).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations0 == 2).getOrElse(false))
+          assertTrue(meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations == 1).getOrElse(false) && meta.meta(genFailureDetails = genFailureDetails2).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations == 2).getOrElse(false))
         },
       ),
     )
