@@ -38,73 +38,99 @@ object TestArrowSpec extends ZIOBaseSpec {
           val span1 = Some(Span(0, 1))
           val span2 = Some(Span(2, 3))
           val meta = createMeta(span = span1)
-          assertTrue(meta.meta(span = None).asInstanceOf[Meta[Any, Nothing]].span == span1 && meta.meta(span = span2).asInstanceOf[Meta[Any, Nothing]].span == span2)
+          val res1 = meta.meta(span = None).asInstanceOf[Meta[Any, Nothing]].span
+          val res2 = meta.meta(span = span2).asInstanceOf[Meta[Any, Nothing]].span
+          assertTrue(res1 == span1 && res2 == span2)
         },
         test("change None parentSpan") {
           val parentSpan = Some(Span(0, 1))
-          val meta = createMeta(span = None)
-          assertTrue(meta.meta(span = None).asInstanceOf[Meta[Any, Nothing]].span == None && meta.meta(span = parentSpan).asInstanceOf[Meta[Any, Nothing]].span == parentSpan)
+          val meta = createMeta(parentSpan = None)
+          val res1 = meta.meta(parentSpan = None).asInstanceOf[Meta[Any, Nothing]].parentSpan
+          val res2 = meta.meta(parentSpan = parentSpan).asInstanceOf[Meta[Any, Nothing]].parentSpan
+          assertTrue(res1 == None && res2 == parentSpan)
         },
         test("change Some parentSpan") {
           val parentSpan1 = Some(Span(0, 1))
           val parentSpan2 = Some(Span(2, 3))
-          val meta = createMeta(span = parentSpan1)
-          assertTrue(meta.meta(span = None).asInstanceOf[Meta[Any, Nothing]].span == parentSpan1 && meta.meta(span = parentSpan2).asInstanceOf[Meta[Any, Nothing]].span == parentSpan2)
+          val meta = createMeta(parentSpan = parentSpan1)
+          val res1 = meta.meta(parentSpan = None).asInstanceOf[Meta[Any, Nothing]].parentSpan
+          val res2 = meta.meta(parentSpan = parentSpan2).asInstanceOf[Meta[Any, Nothing]].parentSpan
+          assertTrue(res1 == parentSpan1 && res2 == parentSpan2)
         },
         test("change None code") {
           val code = Some("some code")
           val meta = createMeta(code = None)
-          assertTrue(meta.meta(code = None).asInstanceOf[Meta[Any, Nothing]].code == None && meta.meta(code = code).asInstanceOf[Meta[Any, Nothing]].code == code)
+          val res1 = meta.meta(code = None).asInstanceOf[Meta[Any, Nothing]].code
+          val res2 = meta.meta(code = code).asInstanceOf[Meta[Any, Nothing]].code
+          assertTrue(res1 == None && res2 == code)
         },
         test("change Some code") {
           val code1 = Some("some code")
           val code2 = Some("other code")
           val meta = createMeta(code = code1)
-          assertTrue(meta.meta(code = None).asInstanceOf[Meta[Any, Nothing]].code == code1 && meta.meta(code = code2).asInstanceOf[Meta[Any, Nothing]].code == code2)
+          val res1 = meta.meta(code = None).asInstanceOf[Meta[Any, Nothing]].code
+          val res2 = meta.meta(code = code2).asInstanceOf[Meta[Any, Nothing]].code
+          assertTrue(res1 == code1 && res2 == code2)
         },
         test("change None location") {
           val location = Some("some location")
           val meta = createMeta(location = None)
-          assertTrue(meta.meta(location = None).asInstanceOf[Meta[Any, Nothing]].location == None && meta.meta(location = location).asInstanceOf[Meta[Any, Nothing]].location == location)
+          val res1 = meta.meta(location = None).asInstanceOf[Meta[Any, Nothing]].location
+          val res2 = meta.meta(location = location).asInstanceOf[Meta[Any, Nothing]].location
+          assertTrue(res1 == None && res2 == location)
         },
         test("change Some location") {
           val location1 = Some("some location")
           val location2 = Some("other location")
           val meta = createMeta(location = location1)
-          assertTrue(meta.meta(location = None).asInstanceOf[Meta[Any, Nothing]].location == location1 && meta.meta(location = location2).asInstanceOf[Meta[Any, Nothing]].location == location2)
+          val res1 = meta.meta(location = None).asInstanceOf[Meta[Any, Nothing]].location
+          val res2 = meta.meta(location = location2).asInstanceOf[Meta[Any, Nothing]].location
+          assertTrue(res1 == location1 && res2 == location2)
         },
         test("change None completeCode") {
           val completeCode = Some("some completeCode")
           val meta = createMeta(completeCode = None)
-          assertTrue(meta.meta(completeCode = None).asInstanceOf[Meta[Any, Nothing]].completeCode == None && meta.meta(completeCode = completeCode).asInstanceOf[Meta[Any, Nothing]].completeCode == completeCode)
+          val res1 = meta.meta(completeCode = None).asInstanceOf[Meta[Any, Nothing]].completeCode
+          val res2 = meta.meta(completeCode = completeCode).asInstanceOf[Meta[Any, Nothing]].completeCode
+          assertTrue(res1 == None && res2 == completeCode)
         },
         test("change Some completeCode") {
           val completeCode1 = Some("some completeCode")
           val completeCode2 = Some("other completeCode")
           val meta = createMeta(completeCode = completeCode1)
-          assertTrue(meta.meta(completeCode = None).asInstanceOf[Meta[Any, Nothing]].completeCode == completeCode1 && meta.meta(completeCode = completeCode2).asInstanceOf[Meta[Any, Nothing]].completeCode == completeCode2)
+          val res1 = meta.meta(completeCode = None).asInstanceOf[Meta[Any, Nothing]].completeCode
+          val res2 = meta.meta(completeCode = completeCode2).asInstanceOf[Meta[Any, Nothing]].completeCode
+          assertTrue(res1 == completeCode1 && res2 == completeCode2)
         },
         test("change None customLabel") {
           val customLabel = Some("some customLabel")
           val meta = createMeta(customLabel = None)
-          assertTrue(meta.meta(customLabel = None).asInstanceOf[Meta[Any, Nothing]].customLabel == None && meta.meta(customLabel = customLabel).asInstanceOf[Meta[Any, Nothing]].customLabel == customLabel)
+          val res1 = meta.meta(customLabel = None).asInstanceOf[Meta[Any, Nothing]].customLabel
+          val res2 = meta.meta(customLabel = customLabel).asInstanceOf[Meta[Any, Nothing]].customLabel
+          assertTrue(res1 == None && res2 == customLabel)
         },
         test("change Some customLabel") {
           val customLabel1 = Some("some customLabel")
           val customLabel2 = Some("other customLabel")
           val meta = createMeta(customLabel = customLabel1)
-          assertTrue(meta.meta(customLabel = None).asInstanceOf[Meta[Any, Nothing]].customLabel == customLabel1 && meta.meta(customLabel = customLabel2).asInstanceOf[Meta[Any, Nothing]].customLabel == customLabel2)
+          val res1 = meta.meta(customLabel = None).asInstanceOf[Meta[Any, Nothing]].customLabel
+          val res2 = meta.meta(customLabel = customLabel2).asInstanceOf[Meta[Any, Nothing]].customLabel
+          assertTrue(res1 == customLabel1 && res2 == customLabel2)
         },
         test("change None genFailureDetails") {
           val genFailureDetails = Some(GenFailureDetails(None, None, 1))
           val meta = createMeta(genFailureDetails = None)
-          assertTrue(meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails == None && meta.meta(genFailureDetails = genFailureDetails).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations == 1).getOrElse(false))
+          val res1 = meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails
+          val res2 = meta.meta(genFailureDetails = genFailureDetails).asInstanceOf[Meta[Any, Nothing]].genFailureDetails
+          assertTrue(res1 == None && res2.map(_.iterations == 1).getOrElse(false))
         },
         test("change Some genFailureDetails") {
           val genFailureDetails1 = Some(GenFailureDetails(None, None, 1))
           val genFailureDetails2 = Some(GenFailureDetails(None, None, 2))
           val meta = createMeta(genFailureDetails = genFailureDetails1)
-          assertTrue(meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations == 1).getOrElse(false) && meta.meta(genFailureDetails = genFailureDetails2).asInstanceOf[Meta[Any, Nothing]].genFailureDetails.map(_.iterations == 2).getOrElse(false))
+          val res1 = meta.meta(genFailureDetails = None).asInstanceOf[Meta[Any, Nothing]].genFailureDetails
+          val res2 = meta.meta(genFailureDetails = genFailureDetails2).asInstanceOf[Meta[Any, Nothing]].genFailureDetails
+          assertTrue(res1.map(_.iterations == 1).getOrElse(false) && res2.map(_.iterations == 2).getOrElse(false))
         },
       ),
     )
