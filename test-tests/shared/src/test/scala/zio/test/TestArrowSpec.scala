@@ -31,7 +31,7 @@ object TestArrowSpec extends ZIOBaseSpec {
           val span = Some(Span(0, 1))
           val meta = createMeta(span = None)
           val res1 = meta.meta(span = None).asInstanceOf[Meta[Any, Nothing]].span
-          val res1 = meta.meta(span = span).asInstanceOf[Meta[Any, Nothing]].span
+          val res2 = meta.meta(span = span).asInstanceOf[Meta[Any, Nothing]].span
           assertTrue(res1 == None && res2 == span)
         },
         test("change Some span") {
