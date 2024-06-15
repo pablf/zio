@@ -1,10 +1,5 @@
 package zio.test
 
-import zio._
-import zio.internal.macros.StringUtils.StringOps
-import zio.test.Assertion._
-import zio.test.TestProvideSpecTypes.{IntService, StringService}
-
 object TestArrowSpec extends ZIOBaseSpec {
 
   import TestArrow._
