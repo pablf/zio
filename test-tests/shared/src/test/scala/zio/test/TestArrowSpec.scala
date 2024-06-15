@@ -19,7 +19,7 @@ object TestArrowSpec extends ZIOBaseSpec {
     genFailureDetails: Option[GenFailureDetails] = None
   ) =
       new Meta(
-        TestArrowF(_ =>TestTrace.fail),
+        TestArrowF[Any, Nothing](_ =>TestTrace.fail),
         span,
         parentSpan,
         code,
