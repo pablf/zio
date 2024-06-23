@@ -47,7 +47,7 @@ class SmartAssertMacros(val c: blackbox.Context) {
     case class Raw(ast: c.Tree, span: (Int, Int))                              extends AST
   }
 
-  case class AssertAST(
+  private case class AssertAST(
     name: String,
     tpes: List[Type] = List.empty,
     args: List[c.Tree] = List.empty,
