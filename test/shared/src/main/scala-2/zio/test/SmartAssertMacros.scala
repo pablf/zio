@@ -47,14 +47,21 @@ class SmartAssertMacros(val c: blackbox.Context) {
     case class Raw(ast: c.Tree, span: (Int, Int))                              extends AST
   }
 
-  private case class AssertAST(
+  case class AssertAST(
     name: String,
     tpes: List[Type] = List.empty,
     args: List[c.Tree] = List.empty,
     implicits: Boolean = false
-  )
+  ) {
+    private[AssertAST] def this(name: String, tpes: List[Type], args: List[c.Tree]): AssertAST =
+      this(name, tpes, args, false)
+    private[AssertAST] def copy(name: String = name, tpes: List[Type] = tpes, args: List[c.Tree] = args): AssertAST =
+      AssertAST(name, tpes, args, implicits)
+  }
 
   object AssertAST {
+    def apply(name: String, tpes: List[Type], args: List[c.Tree]): AssertAST = AssertAST(name, tpes, args)
+
     def toTree(assertAST: AssertAST): c.Tree = {
       val implicits = q"import zio.test.internal.SmartAssertions.Implicits._"
       if (assertAST.implicits)
