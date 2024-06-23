@@ -53,9 +53,9 @@ class SmartAssertMacros(val c: blackbox.Context) {
     args: List[c.Tree] = List.empty,
     implicits: Boolean = false
   ) {
-    private[AssertAST] def this(name: String, tpes: List[Type], args: List[c.Tree]) =
+    def this(name: String, tpes: List[Type], args: List[c.Tree]) =
       this(name, tpes, args, false)
-    private[AssertAST] def copy(name: String = name, tpes: List[Type] = tpes, args: List[c.Tree] = args): AssertAST =
+    def copy(name: String = name, tpes: List[Type] = tpes, args: List[c.Tree] = args): AssertAST =
       AssertAST(name, tpes, args, implicits)
   }
 
