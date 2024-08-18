@@ -160,7 +160,7 @@ object Config {
           val isEqual = if(selfLength == thatLength) 0 else 1
           (0 until selfLength).foldLeft(isEqual) { (b, i) =>
             val char = if (i >= thatLength) "a".head else that.raw(i)
-            bo | (a(i) ^ char)
+            b | (self.raw(i) ^ char)
           } == 0
         }
         case _ => false
