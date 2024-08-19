@@ -157,7 +157,7 @@ object Config {
         case that: Secret => {
           val selfLength = self.raw.length
           val thatLength = that.raw.length
-          val isEqual = if(selfLength == thatLength) 0 else 1
+          val isEqual    = if (selfLength == thatLength) 0 else 1
           (0 until selfLength).foldLeft(isEqual) { (b, i) =>
             val char = if (i >= thatLength) "a".head else that.raw(i)
             b | (self.raw(i) ^ char)
