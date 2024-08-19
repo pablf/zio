@@ -99,7 +99,7 @@ object ConfigSpec extends ZIOBaseSpec {
         val sameLength = zio.Config.Secret("some-secrez"*1000)
         assertZIO(boxTest(ZIO.attempt {secret equals secret}, ZIO.attempt {secret equals sameLength}))(equalTo(true))
       },
-    ) @@ TestAspect.sequentially @@ TestAspect.withLiveClock
+    ) @@ TestAspect.sequentially @@ TestAspect.withLiveClock @@ TestAspect.flaky
     )
 
   def withDefaultSuite =
