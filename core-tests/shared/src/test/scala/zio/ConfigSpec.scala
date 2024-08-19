@@ -31,14 +31,12 @@ object ConfigSpec extends ZIOBaseSpec {
         res <- f
         after <- Clock.nanoTime
       } yield after-before
-    }
-    for {
-      statisticsA <- statistics(() => slow)
-      statisticsB <- statistics(() => fast)
-    } yield !(statisticsB._2 < statisticsA._1)
 
-
-
+      for {
+        statisticsA <- statistics(() => slow)
+        statisticsB <- statistics(() => fast)
+      } yield !(statisticsB._2 < statisticsA._1)
+  }
 
   def secretSuite =
     suite("Secret")(
