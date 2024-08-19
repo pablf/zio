@@ -16,7 +16,7 @@ object ConfigSpec extends ZIOBaseSpec {
       val nOfTries = 1000
     
     def statistics[A](a: () => ZIO[Any, Throwable, A]): ZIO[Any, Throwable, (Long, Long)] =
-      ZIO.loop(0)(_ < nOfTries, _ + 1)(i => measure(a()))
+      ZIO.loop(0)(_ < nOfTries, _ + 1)(_ => measure(a()))
         .map { sampleUnsorted =>
           val sample = sampleUnsorted.sorted
           val tail = sample.drop((nOfTries*i).round.toInt)
@@ -28,7 +28,7 @@ object ConfigSpec extends ZIOBaseSpec {
     def measure[A](f: ZIO[Any, Throwable, A]): ZIO[Any, Throwable, Long] =
       for {
         before <- Clock.nanoTime
-        res <- f
+        _ <- f
         after <- Clock.nanoTime
       } yield after-before
 
