@@ -10,8 +10,8 @@ object ConfigSpec extends ZIOBaseSpec {
   def boxTest[A](slow: ZIO[Any, Throwable, A], fast: ZIO[Any, Throwable, A]): ZIO[Any, Throwable, Boolean] = {
 
       //Box test from "Opportunities and Limits of Remote Timing Attacks", Scott A. Crosby, Dan S. Wallach, Rudolf H. Riedi
-      val i = 0.01
-      val j = 0.3
+      val i = 0.03
+      val j = 0.06
 
       val nOfTries = 1000
     
