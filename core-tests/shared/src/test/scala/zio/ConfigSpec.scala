@@ -15,8 +15,8 @@ object ConfigSpec extends ZIOBaseSpec {
 
       val nOfTries = 1000
     
-    def statistics[A](a: () => ZIO[Any, Throwable, A]): ZIO[Any, Throwable, (Long, Long)] =
-      ZIO.loop(0)(_ < nOfTries, _ + 1)(_ => measure(a()))
+    def statistics[A](a: ZIO[Any, Throwable, A]): ZIO[Any, Throwable, (Long, Long)] =
+      ZIO.loop(0)(_ < nOfTries, _ + 1)(_ => measure(a))
         .map { sampleUnsorted =>
           val sample = sampleUnsorted.sorted
           val tail = sample.drop((nOfTries*i).round.toInt)
@@ -33,8 +33,8 @@ object ConfigSpec extends ZIOBaseSpec {
       } yield after-before
 
       for {
-        statisticsA <- statistics(() => slow)
-        statisticsB <- statistics(() => fast)
+        statisticsA <- statistics(slow)
+        statisticsB <- statistics(fast)
       } yield !(statisticsB._2 < statisticsA._1)
   }
 
@@ -99,7 +99,7 @@ object ConfigSpec extends ZIOBaseSpec {
         val sameLength = zio.Config.Secret("some-secrez"*1000)
         assertZIO(boxTest(ZIO.attempt {secret equals secret}, ZIO.attempt {secret equals sameLength}))(equalTo(true))
       },
-    ) @@ TestAspect.withLiveClock
+    ) @@ TestAspect.sequentially @@ TestAspect.withLiveClock
     )
 
   def withDefaultSuite =
