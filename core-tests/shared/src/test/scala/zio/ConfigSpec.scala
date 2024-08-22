@@ -34,6 +34,7 @@ object ConfigSpec extends ZIOBaseSpec {
     for {
       statisticsA <- statistics(slow)
       statisticsB <- statistics(fast)
+      _ <- Console.printLine(s"$statisticsA, $statisticsB")
     } yield !(statisticsB._2 < statisticsA._1)
   }
 
