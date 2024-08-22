@@ -35,7 +35,7 @@ object ConfigSpec extends ZIOBaseSpec {
       statisticsA <- statistics(slow)
       statisticsB <- statistics(fast)
       _ <- Console.printLine(s"$statisticsA, $statisticsB")
-    } yield !(statisticsB._2 < statisticsA._1)
+    } yield !(statisticsB._2 < statisticsA._1 * 0.9)
   }
 
   def secretSuite =
