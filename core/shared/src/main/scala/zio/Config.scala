@@ -158,11 +158,9 @@ object Config {
           val selfLength = self.raw.length
           val thatLength = that.raw.length
           var isEqual    = if (selfLength == thatLength) 0 else 1
-          var i          = 0
-          while (i < selfLength) {
+          for (i <- 0 until selfLength) {
             val char = if (i >= thatLength) 'a' else that.raw(i)
             isEqual = isEqual | (self.raw(i) ^ char)
-            i += 1
           }
           isEqual == 0
         }
