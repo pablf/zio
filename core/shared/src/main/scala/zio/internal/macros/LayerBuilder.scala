@@ -88,7 +88,7 @@ final case class LayerBuilder[Type, Expr](
      * fail with one or more GraphErrors.
      */
     val allowedTypes = providedLayerNodes.flatMap(_.outputs)
-    val nodes: List[Node[Type, Expr]] = providedLayerNodes.map(_.mapInputs(k => allowedTypes.find(key => typeEquals(key, k) || typeEquals(k, key))).getOrElse(k))
+    val nodes: List[Node[Type, Expr]] = providedLayerNodes.map(_.mapInputs(k => allowedTypes.find(key => typeEquals(key, k) || typeEquals(k, key)).getOrElse(k)))
     val graph                         = Graph(nodes, typeEquals, typeToNode, remainder)
     val layerTreeEither: Either[::[GraphError[Type, Expr]], LayerTree[Expr]] =
       graph.buildNodes(target.filterNot(typeEquals(_, sideEffectType)), sideEffectNodes)

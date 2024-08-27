@@ -11,7 +11,7 @@ final case class Graph[Key, A](
 
   // Map assigning to each type the times that it must be built
   // -1 designs a `Key` from the environment
-  private val standardKeys: List[Key] = nodes.flatMap(_.output)
+  //private val standardKeys: List[Key] = nodes.flatMap(_.output)
   private var neededKeys: Map[Key, Int] = Map.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key]    = Nil
@@ -78,7 +78,7 @@ final case class Graph[Key, A](
 
     forEach(normalOutputs) { output =>
       if (created.exists(k => keyEquals(k, output))) {
-        if (neededKeys.get(standardize(output)).isEmpty) throw new Throwable("This can't happen.")
+        if (neededKeys.get(output).isEmpty) throw new Throwable("This can't happen.")
         Right(())
       } else {
         for {
