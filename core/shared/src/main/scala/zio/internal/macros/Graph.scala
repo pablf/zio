@@ -9,17 +9,17 @@ final case class Graph[Key, A](
   envKeys: List[Key]
 ) {
 
-  private def get(k: Key, m: List[Key]): Int =
-    m.count(key => areEquals(key, k))
-
-
-  private def areEquals(k1: Key, k2: Key): Boolean =
-    keyEquals(k1, k2)
-  // List with the types that must be built from given nodes, contained the number of times needed 
+  // List with the types that must be built from given nodes, contained the number of times needed
   private var neededKeys: List[Key] = List.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key]    = Nil
   private var envDependencies: List[Key] = Nil
+
+  private def get(k: Key, m: List[Key]): Int =
+    m.count(key => areEquals(key, k))
+
+  private def areEquals(k1: Key, k2: Key): Boolean =
+    keyEquals(k1, k2)
 
   private var usedEnvKeys: Set[Key] = Set.empty
   def usedRemainders(): Set[A]      = usedEnvKeys.map(environment(_)).map(_.value)
@@ -48,7 +48,6 @@ final case class Graph[Key, A](
     if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies ++ envDependencies)
 
-
   /**
    * Restarts variables for next iteration of buildComplete
    */
@@ -61,7 +60,7 @@ final case class Graph[Key, A](
   private def distinctKeys(keys: List[Key]): List[Key] = {
     var distinct: List[Key] = List.empty
     for (k <- keys) {
-      if (!distinct.exists(k2 => areEquals(k, k2))) distinct = k :: distinct
+      if (!distinct.exists(k2 => keyEquals(k, k2) || keyEquals(k2, k))) distinct = k :: distinct
     }
     distinct.reverse
   }
@@ -92,7 +91,7 @@ final case class Graph[Key, A](
                       if (topLevel || parent.isEmpty) Some(GraphError.MissingTopLevelDependency(output))
                       else Some(GraphError.missingTransitiveDependency(parent.get, output))
                   )
-          nodeOutputs = node.outputs//.map(out => findKey(out, outputs))
+          nodeOutputs = node.outputs
           _          <- Right(nodeOutputs.map(addKey(_)))
           _          <- Right { created = nodeOutputs ++ created }
           _ <- parent match {
@@ -115,7 +114,6 @@ final case class Graph[Key, A](
   private def addKey(key: Key): Unit =
     if (!isEnv(key)) neededKeys = key :: neededKeys
 
-
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     build(node.inputs).map { case (deps, allEnv) =>
       if (allEnv) LayerTree.succeed(node.value)
@@ -135,7 +133,8 @@ final case class Graph[Key, A](
       } else
         get(output, neededKeys) match {
           case 0 => throw new Throwable(s"This can't happen")
-          case 1 => getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
+          case 1 =>
+            getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
           case _ => {
             dependencies = output :: dependencies
             Right((LayerTree.succeed(environment(output).value), true))
