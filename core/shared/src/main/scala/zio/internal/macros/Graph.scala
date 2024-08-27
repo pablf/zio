@@ -9,15 +9,13 @@ final case class Graph[Key, A](
   envKeys: List[Key]
 ) {
 
-  def get(k: Key, m: List[Key]): Int =
+  private def get(k: Key, m: List[Key]): Int =
     m.count(key => areEquals(key, k))
 
 
-  def areEquals(k1: Key, k2: Key): Boolean =
+  private def areEquals(k1: Key, k2: Key): Boolean =
     keyEquals(k1, k2)
-  // Map assigning to each type the times that it must be built
-  // -1 designs a `Key` from the environment
-  //private val standardKeys: List[Key] = nodes.flatMap(_.output)
+  // List with the types that must be built from given nodes, contained the number of times needed 
   private var neededKeys: List[Key] = List.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key]    = Nil
@@ -39,10 +37,8 @@ final case class Graph[Key, A](
   private def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     if (!outputs.isEmpty)
       for {
-        _         <- Right(println(outputs))
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
-        _         <- Right(println(neededKeys))
         rightTree <- build(outputs).map(_._1)
         leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
