@@ -37,6 +37,7 @@ final case class Graph[Key, A](
   private def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     if (!outputs.isEmpty)
       for {
+        _         <- Right(println(outputs))
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
         rightTree <- build(outputs).map(_._1)
@@ -46,7 +47,7 @@ final case class Graph[Key, A](
 
   private def constructDeps(): List[Key] =
     if (dependencies.isEmpty) dependencies
-    else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
+    else distinctKeys(dependencies ++ envDependencies)
 
 
   /**
