@@ -162,6 +162,7 @@ private[zio] trait LayerMacroUtils {
       .map(_.dealias)
       .filterNot(_.isAny)
       .filterNot(t => typeOf[Any] <:< t)
+      .filterNot(t => typeOf[Object] <:< t)
       .distinct
   }
 
