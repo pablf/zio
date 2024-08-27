@@ -40,6 +40,7 @@ final case class Graph[Key, A](
         _         <- Right(println(outputs))
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
+        _         <- Right(println(neededKeys))
         rightTree <- build(outputs).map(_._1)
         leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
