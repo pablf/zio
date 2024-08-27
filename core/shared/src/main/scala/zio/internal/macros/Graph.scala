@@ -9,10 +9,14 @@ final case class Graph[Key, A](
   envKeys: List[Key]
 ) {
 
+  def get(k: Key, m: List[Key]): Int =
+    m.count(key => keyEquals(k, key) || keyEquals(key, k))
+
+
   // Map assigning to each type the times that it must be built
   // -1 designs a `Key` from the environment
   //private val standardKeys: List[Key] = nodes.flatMap(_.output)
-  private var neededKeys: Map[Key, Int] = Map.empty
+  private var neededKeys: List[Key] = List.empty
   // Dependencies to pass to next iteration of buildComplete
   private var dependencies: List[Key]    = Nil
   private var envDependencies: List[Key] = Nil
@@ -49,7 +53,7 @@ final case class Graph[Key, A](
    * Restarts variables for next iteration of buildComplete
    */
   private def restartKeys(): Unit = {
-    neededKeys = Map.empty
+    neededKeys = List.empty
     dependencies = Nil
     envDependencies = Nil
   }
@@ -78,7 +82,7 @@ final case class Graph[Key, A](
 
     forEach(normalOutputs) { output =>
       if (created.exists(k => keyEquals(k, output))) {
-        if (neededKeys.get(output).isEmpty) throw new Throwable("This can't happen.")
+        if (get(output, neededKeys) == 0) throw new Throwable("This can't happen.")
         Right(())
       } else {
         for {
@@ -107,33 +111,26 @@ final case class Graph[Key, A](
   private def findKey(key: Key, keys: List[Key]): Key =
     keys.find(k => keyEquals(key, k)).getOrElse(key)
 
+
   private def addEnv(key: Key): Unit = {
     val keyFromEnv = envKeys
       .find(env => keyEquals(key, env) || keyEquals(env, key))
       .getOrElse(throw new Throwable("This shouldn't happen"))
     usedEnvKeys = usedEnvKeys + keyFromEnv
-    neededKeys.get(key) match {
-      case Some(_) => ()
-      case None    => neededKeys = neededKeys + (key -> -1)
+    get(key, neededKeys) match {
+      case 0    => neededKeys = key :: neededKeys
+      case _ => ()
     }
   }
+
   private def addKey(key: Key): Unit =
-    neededKeys.get(key) match {
-      case Some(-1) => ()
-      case Some(n)  => neededKeys = neededKeys + (key -> (n + 1))
-      case None     => neededKeys = neededKeys + (key -> 1)
-    }
+    if (!isEnv(key)) neededKeys = key :: neededKeys
+
 
   private def buildNode(node: Node[Key, A]): Either[::[GraphError[Key, A]], LayerTree[A]] =
     build(node.inputs).map { case (deps, allEnv) =>
       if (allEnv) LayerTree.succeed(node.value)
       else deps >>> LayerTree.succeed(node.value)
-    }
-
-  private def tapKey(key: Key): Option[Int] =
-    neededKeys.get(key) match {
-      case Some(n) => Some(n)
-      case None    => neededKeys.find(pair => keyEquals(pair._1, key) || keyEquals(key, pair._1)).map(_._2)
     }
 
   /**
@@ -147,11 +144,10 @@ final case class Graph[Key, A](
         envDependencies = output :: envDependencies
         Right((LayerTree.succeed(environment(output).value), true))
       } else
-        tapKey(output) match {
-          case None => throw new Throwable(s"This can't happen")
-          case Some(1) =>
-            getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
-          case Some(n) => {
+        get(output, neededKeys) match {
+          case 0 => throw new Throwable(s"This can't happen")
+          case 1 => getNodeWithOutput[GraphError[Key, A]](output).flatMap(node => buildNode(node).map(tree => (tree, false)))
+          case _ => {
             dependencies = output :: dependencies
             Right((LayerTree.succeed(environment(output).value), true))
           }
