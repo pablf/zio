@@ -41,13 +41,17 @@ final case class Graph[Key, A](
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
         rightTree <- build(outputs).map(_._1)
-        leftTree  <- buildComplete(constructDeps())
+        leftTree  <- buildComplete(constructDeps(outputs.length))
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
-  private def constructDeps(): List[Key] =
+  private def constructDeps(lengthBefore): List[Key] =
     if (dependencies.isEmpty) dependencies
-    else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
+    else {
+      val deps = distinctKeys(dependencies) ++ distinctKeys(envDependencies)
+      if (lengthBefore == deps.length) throw new Throwable("booooooooom")
+      else deps
+    }
 
   /**
    * Restarts variables for next iteration of buildComplete
