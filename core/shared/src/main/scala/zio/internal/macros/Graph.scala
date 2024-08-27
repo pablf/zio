@@ -82,7 +82,7 @@ final case class Graph[Key, A](
     envOutputs.map(addEnv(_))
 
     forEach(normalOutputs) { output =>
-      if (created.exists(k => keyEquals(k, output))) {
+      if (created.exists(k => keyEquals(k, output) || keyEquals(output, k))) {
         if (get(output, neededKeys) == 0) throw new Throwable("This can't happen.")
         Right(())
       } else {
@@ -164,7 +164,8 @@ final case class Graph[Key, A](
       .toRight(error.map(e => ::(e, Nil)).getOrElse(throw new Throwable("This can't happen")))
 
   private def findNodeWithOutput(output: Key): Option[Node[Key, A]] =
-    nodes.find(_.outputs.exists(keyEquals(_, output)))
+    nodes.find(_.outputs.exists(out => keyEquals(output, out) || keyEquals(out, output)))
+    ///nodes.find(_.outputs.exists(keyEquals(_, output)))
 
   private def isEnv(key: Key): Boolean =
     envKeys.exists(env => keyEquals(key, env) || keyEquals(env, key))
