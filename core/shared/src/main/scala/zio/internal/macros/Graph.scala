@@ -23,7 +23,6 @@ final case class Graph[Key, A](
 
   private var usedEnvKeys: Set[Key] = Set.empty
   def usedRemainders(): Set[A]      = usedEnvKeys.map(environment(_)).map(_.value)
-  private var topLevel              = true
 
   def buildNodes(
     outputs: List[Key],
@@ -32,7 +31,7 @@ final case class Graph[Key, A](
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs).map(_._1)
-    leftTree    <- buildComplete(constructDeps(outputs.length))
+    leftTree    <- buildComplete(constructDeps())
   } yield leftTree >>> (rightTree ++ sideEffects)
 
   private def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
@@ -41,17 +40,14 @@ final case class Graph[Key, A](
         _         <- Right(restartKeys())
         _         <- mkNeededKeys(outputs)
         rightTree <- build(outputs).map(_._1)
-        leftTree  <- buildComplete(constructDeps(outputs.length))
+        leftTree  <- buildComplete(constructDeps())
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
   private def constructDeps(lengthBefore: Int): List[Key] =
     if (dependencies.isEmpty) dependencies
-    else {
-      val deps = distinctKeys(dependencies) ++ distinctKeys(envDependencies)
-      if (lengthBefore == deps.length) throw new Throwable("booooooooom")
-      else deps
-    }
+    else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
+
 
   /**
    * Restarts variables for next iteration of buildComplete
