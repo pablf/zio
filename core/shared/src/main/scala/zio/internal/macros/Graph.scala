@@ -44,7 +44,7 @@ final case class Graph[Key, A](
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
-  private def constructDeps(lengthBefore: Int): List[Key] =
+  private def constructDeps(): List[Key] =
     if (dependencies.isEmpty) dependencies
     else distinctKeys(dependencies) ++ distinctKeys(envDependencies)
 
