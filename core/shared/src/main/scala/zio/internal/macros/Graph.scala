@@ -32,7 +32,7 @@ final case class Graph[Key, A](
     _           <- mkNeededKeys(outputs ++ sideEffectNodes.flatMap(_.inputs), true)
     sideEffects <- forEach(sideEffectNodes)(buildNode).map(_.combineHorizontally)
     rightTree   <- build(outputs).map(_._1)
-    leftTree    <- buildComplete(constructDeps())
+    leftTree    <- buildComplete(constructDeps(outputs.length))
   } yield leftTree >>> (rightTree ++ sideEffects)
 
   private def buildComplete(outputs: List[Key]): Either[::[GraphError[Key, A]], LayerTree[A]] =
@@ -45,7 +45,7 @@ final case class Graph[Key, A](
       } yield leftTree >>> rightTree
     else Right(LayerTree.empty)
 
-  private def constructDeps(lengthBefore): List[Key] =
+  private def constructDeps(lengthBefore: Int): List[Key] =
     if (dependencies.isEmpty) dependencies
     else {
       val deps = distinctKeys(dependencies) ++ distinctKeys(envDependencies)
