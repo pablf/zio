@@ -10,9 +10,11 @@ final case class Graph[Key, A](
 ) {
 
   def get(k: Key, m: List[Key]): Int =
-    m.count(key => keyEquals(k, key) || keyEquals(key, k))
+    m.count(key => areEquals(key, k))
 
 
+  def areEquals(k1: Key, k2: Key): Boolean =
+    keyEquals(k1, k2)
   // Map assigning to each type the times that it must be built
   // -1 designs a `Key` from the environment
   //private val standardKeys: List[Key] = nodes.flatMap(_.output)
@@ -63,7 +65,7 @@ final case class Graph[Key, A](
   private def distinctKeys(keys: List[Key]): List[Key] = {
     var distinct: List[Key] = List.empty
     for (k <- keys) {
-      if (!distinct.exists(k2 => keyEquals(k, k2) || keyEquals(k2, k))) distinct = k :: distinct
+      if (!distinct.exists(k2 => areEquals(k, k2))) distinct = k :: distinct
     }
     distinct.reverse
   }
@@ -83,7 +85,7 @@ final case class Graph[Key, A](
     envOutputs.map(addEnv(_))
 
     forEach(normalOutputs) { output =>
-      if (created.exists(k => keyEquals(k, output) || keyEquals(output, k))) {
+      if (created.exists(k => areEquals(k, output))) {
         if (get(output, neededKeys) == 0) throw new Throwable("This can't happen.")
         Right(())
       } else {
@@ -107,16 +109,9 @@ final case class Graph[Key, A](
     }.map(_ => ())
   }
 
-  ///private def standardize(key: Key, keys: List[Key]): Key =
-  ///  keys.find(k => keyEquals(key, k) || keyEquals(k, key)).getOrElse(throw new Throwable(s"This error shouldn't happen: $key was not in the output of any layer"))
-
-  private def findKey(key: Key, keys: List[Key]): Key =
-    keys.find(k => keyEquals(key, k)).getOrElse(key)
-
-
   private def addEnv(key: Key): Unit = {
     val keyFromEnv = envKeys
-      .find(env => keyEquals(key, env) || keyEquals(env, key))
+      .find(env => areEquals(env, key))
       .getOrElse(throw new Throwable("This shouldn't happen"))
     usedEnvKeys = usedEnvKeys + keyFromEnv
   }
@@ -165,11 +160,10 @@ final case class Graph[Key, A](
       .toRight(error.map(e => ::(e, Nil)).getOrElse(throw new Throwable("This can't happen")))
 
   private def findNodeWithOutput(output: Key): Option[Node[Key, A]] =
-    nodes.find(_.outputs.exists(out => keyEquals(output, out) || keyEquals(out, output)))
-    ///nodes.find(_.outputs.exists(keyEquals(_, output)))
+    nodes.find(_.outputs.exists(areEquals(_, output)))
 
   private def isEnv(key: Key): Boolean =
-    envKeys.exists(env => keyEquals(key, env) || keyEquals(env, key))
+    envKeys.exists(env => areEquals(key, env))
 
   private def assertNonCircularDependency(
     node: Node[Key, A],
