@@ -117,10 +117,6 @@ final case class Graph[Key, A](
       .find(env => keyEquals(key, env) || keyEquals(env, key))
       .getOrElse(throw new Throwable("This shouldn't happen"))
     usedEnvKeys = usedEnvKeys + keyFromEnv
-    get(key, neededKeys) match {
-      case 0    => neededKeys = key :: neededKeys
-      case _ => ()
-    }
   }
 
   private def addKey(key: Key): Unit =
